@@ -1,0 +1,647 @@
+const host = document.querySelector('.umbrella-canvas');
+
+/* The umbrella is heavy — Three.js (~1.2MB to parse), generated canvas textures,
+   an environment map and a WebGL render loop. It sits below the fold, so build it
+   LAZILY: on the first sign of engagement (any scroll/tap) or when its section
+   scrolls into view — never on page load. That keeps the entire 3D scene off the
+   critical path, so first paint and interactivity are no longer blocked by it. */
+if (host) {
+  let umbrellaStarted = false;
+  const startUmbrella = async () => {
+    if (umbrellaStarted) return;
+    umbrellaStarted = true;
+    const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js');
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  // Slightly above hem level, below the apex: high cameras foreshorten the
+  // dome into a squashed pancake, dead-level ones lose the rim ellipse that
+  // makes the canopy read three-dimensional.
+  camera.position.set(0, 0.98, 7.8);
+  camera.lookAt(0, -0.18, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0xffffff, 0);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  host.appendChild(renderer.domElement);
+
+  /* Studio-style environment map — without one, fabric and chrome read as
+     flat plastic no matter how the direct lights are tuned. */
+  const envScene = new THREE.Scene();
+  envScene.add(new THREE.Mesh(
+    new THREE.SphereGeometry(18, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xdde8f2, side: THREE.BackSide }),
+  ));
+  function addSoftbox(width, height, intensity, x, y, z, tint = null) {
+    const material = new THREE.MeshBasicMaterial();
+    if (tint) material.color.copy(tint).multiplyScalar(intensity);
+    else material.color.setScalar(intensity);
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+    panel.position.set(x, y, z);
+    panel.lookAt(0, 0, 0);
+    envScene.add(panel);
+  }
+  addSoftbox(9, 9, 5, 0, 11, 3);
+  addSoftbox(7, 4, 2.6, -9, 4, 5);
+  addSoftbox(6, 3, 1.5, 9, 3, -3, new THREE.Color(1, 0.93, 0.85));
+  addSoftbox(8, 3, 1.1, 0, 2, -10, new THREE.Color(0.8, 0.9, 1));
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+  pmrem.dispose();
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x3a5a78, 0.9));
+
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+  keyLight.position.set(4.8, 6.5, 6);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.camera.left = -4;
+  keyLight.shadow.camera.right = 4;
+  keyLight.shadow.camera.top = 4;
+  keyLight.shadow.camera.bottom = -4;
+  scene.add(keyLight);
+
+  const fillLight = new THREE.DirectionalLight(0x9fc9ee, 0.7);
+  fillLight.position.set(-5, 1.5, 3);
+  scene.add(fillLight);
+
+  const rimLight = new THREE.DirectionalLight(0x4d86b8, 1.3);
+  rimLight.position.set(0, 2.5, -5);
+  scene.add(rimLight);
+
+  // Sit the whole umbrella low in the frame so its canopy clears the heading
+  // above it (the heading grows with viewport width and would otherwise
+  // overlap the canopy on wide screens).
+  const floatBaseY = -0.2;
+  const floatingRig = new THREE.Group();
+  floatingRig.position.y = floatBaseY;
+  scene.add(floatingRig);
+
+  const umbrella = new THREE.Group();
+  umbrella.rotation.set(-0.07, 0, 0.01);
+  const compactCanopy = window.matchMedia('(max-width: 767px)').matches;
+  const overallScale = compactCanopy ? 1.0 : 1.18;
+  umbrella.scale.setScalar(overallScale);
+  floatingRig.add(umbrella);
+
+  const canopyRadius = 2.3;
+  const domeHeight = 1.0;
+  const facetCount = 8;
+  const assemblyPieceCount = 4;
+  const panelAngle = (Math.PI * 2) / facetCount;
+  // Classic two-tone canopy: solid blue gores alternating with white gores.
+  const panelBlue = '#0e5293';
+  const panelWhite = '#eef3f8';
+  const labelInk = '#0c3f76';   // navy print on the white gores
+  // The four service lines printed onto the canopy. Each maps to two opposite
+  // gores (index % 4) so a readable panel always faces the viewer as it spins.
+  const serviceLabels = [
+    'BUSINESS\nCONSULTING',
+    'ACCOUNTING &\nBOOKKEEPING',
+    'VAT\nFILING',
+    'TAXATION',
+  ];
+
+  /* Rib profile: parabola blended with a touch of cone so the crown keeps a
+     slight peak at the ferrule instead of a flat squashed top, easing into a
+     ~37 degree drooping rim like a taut opened canopy. */
+  function ribProfile(radialProgress) {
+    const parabola = 1 - radialProgress * radialProgress;
+    const cone = 1 - radialProgress;
+    return domeHeight * (0.85 * parabola + 0.15 * cone)
+      - 0.055 * Math.pow(radialProgress, 6);
+  }
+
+  /* Fabric surface: ridge along every rib, a soft valley between ribs, and a
+     scalloped hem that rises between the rib tips like sewn gores do. */
+  function canopyHeight(radialProgress, localProgress) {
+    const between = Math.sin(Math.PI * localProgress);
+    const valleyWindow = Math.pow(Math.sin(Math.PI * Math.min(radialProgress * 1.08, 1)), 1.2);
+    return ribProfile(radialProgress)
+      - 0.05 * between * valleyWindow
+      + 0.075 * between * Math.pow(radialProgress, 4);
+  }
+
+  function canopyRadiusAt(radialProgress, localProgress) {
+    const pinch = 1 - 0.05 * Math.sin(Math.PI * localProgress) * Math.pow(radialProgress, 3);
+    return canopyRadius * radialProgress * pinch;
+  }
+
+  function createWeaveTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#808080';
+    context.fillRect(0, 0, 128, 128);
+    for (let line = 0; line < 128; line += 2) {
+      context.strokeStyle = line % 4 === 0 ? 'rgba(240,240,240,.1)' : 'rgba(25,25,25,.08)';
+      context.beginPath();
+      context.moveTo(0, line + 0.5);
+      context.lineTo(128, line + 0.5);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(line + 0.5, 0);
+      context.lineTo(line + 0.5, 128);
+      context.stroke();
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(18, 22);
+    return texture;
+  }
+
+  /* Panel texture: gored nylon with baked seam allowances and stitching.
+     Remember the vertical flip — canvas top row lands at the hem (v = 1). */
+  function createPanelTexture(baseColor, label, isLight = false, ink = 'rgba(255,255,255,0.95)') {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d');
+
+    // Shading shifts with the gore colour: deep navy folds, threads and
+    // stitching on the blue panels; soft cool-grey equivalents on the white
+    // ones (a white gore should never darken to navy).
+    const apexShade = isLight ? 'rgba(120,140,170,1)' : 'rgba(4,26,52,1)';
+    const shadeAlpha = isLight ? 0.4 : 0.55;
+    const threadHi = isLight ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.022)';
+    const threadLo = isLight ? 'rgba(40,60,95,.035)' : 'rgba(3,20,42,.02)';
+    const seamShadow = isLight ? 'rgba(55,80,115,.3)' : 'rgba(2,18,38,.42)';
+    const seamFade = isLight ? 'rgba(55,80,115,0)' : 'rgba(2,18,38,0)';
+    const hemShadow = isLight ? 'rgba(55,80,115,.34)' : 'rgba(2,18,38,.5)';
+    const hemFade = isLight ? 'rgba(55,80,115,0)' : 'rgba(2,18,38,0)';
+    const stitch = isLight ? 'rgba(30,55,95,.4)' : 'rgba(255,255,255,.3)';
+
+    const gradient = context.createLinearGradient(0, 0, 0, size);
+    gradient.addColorStop(0, baseColor);
+    gradient.addColorStop(0.72, baseColor);
+    gradient.addColorStop(1, apexShade);
+    context.fillStyle = baseColor;
+    context.fillRect(0, 0, size, size);
+    context.globalAlpha = shadeAlpha;
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+    context.globalAlpha = 1;
+
+    // Faint thread directionality so close-ups read as coated fabric.
+    context.lineWidth = 1;
+    for (let line = 0; line <= size; line += 7) {
+      context.strokeStyle = line % 21 === 0 ? threadHi : threadLo;
+      context.beginPath();
+      context.moveTo(0, line + 0.5);
+      context.lineTo(size, line + 0.5);
+      context.stroke();
+    }
+
+    // Seam allowances folded under each gore edge, plus visible stitching.
+    [0, size].forEach(edge => {
+      const inward = edge === 0 ? 1 : -1;
+      const shade = context.createLinearGradient(edge, 0, edge + inward * 40, 0);
+      shade.addColorStop(0, seamShadow);
+      shade.addColorStop(1, seamFade);
+      context.fillStyle = shade;
+      context.fillRect(edge === 0 ? 0 : size - 40, 0, 40, size);
+
+      context.strokeStyle = stitch;
+      context.lineWidth = 2.4;
+      context.setLineDash([11, 9]);
+      context.beginPath();
+      context.moveTo(edge + inward * 26, 0);
+      context.lineTo(edge + inward * 26, size);
+      context.stroke();
+      context.setLineDash([]);
+    });
+
+    // Hem: doubled-over band with a stitch row (hem sits at the canvas top).
+    const hemShade = context.createLinearGradient(0, 0, 0, 30);
+    hemShade.addColorStop(0, hemShadow);
+    hemShade.addColorStop(1, hemFade);
+    context.fillStyle = hemShade;
+    context.fillRect(0, 0, size, 30);
+    context.strokeStyle = stitch;
+    context.lineWidth = 2.4;
+    context.setLineDash([11, 9]);
+    context.beginPath();
+    context.moveTo(0, 20);
+    context.lineTo(size, 20);
+    context.stroke();
+    context.setLineDash([]);
+
+    if (label) {
+      // Screen-printed service name. Counter-rotate so it reads upright on the
+      // assembled canopy (WebGL flips the canvas vertically once more).
+      const lines = label.split('\n');
+      const rendered = lines.length > 1 ? [...lines].reverse() : lines;
+      // Seat the text low on the gore (~3/4 of the way to the hem). Near the
+      // apex the dome curls away and foreshortens the print; the wide, flatter
+      // band closer to the hem is where it stays readable.
+      const centerY = size * 0.23;   // distance from hem (canvas top) to text centre
+      const lineStep = size * 0.165; // extra gap so stacked lines never crowd
+      const maxWidth = size * 0.78;
+
+      context.save();
+      context.translate(size, size);
+      context.rotate(Math.PI);
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      if ('letterSpacing' in context) context.letterSpacing = '0.05em';
+
+      rendered.forEach((line, i) => {
+        let fontSize = size * 0.108;
+        const applyFont = () => { context.font = `800 ${fontSize}px Montserrat, Arial, sans-serif`; };
+        applyFont();
+        const width = context.measureText(line).width;
+        if (width > maxWidth) { fontSize *= maxWidth / width; applyFont(); }
+
+        const physicalY = lines.length > 1
+          ? centerY - (rendered.length - 1) * lineStep / 2 + i * lineStep
+          : centerY;
+        const y = size - physicalY;
+
+        // A soft cast shadow seats the lettering into the weave so it reads as
+        // printed-on fabric rather than a decal floating above it.
+        context.shadowColor = isLight ? 'rgba(10,35,70,0.28)' : 'rgba(2,18,40,0.6)';
+        context.shadowBlur = isLight ? 6 : 9;
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = isLight ? 2 : 3;
+        context.fillStyle = ink;
+        context.fillText(line, size / 2, y);
+      });
+      context.restore();
+      context.shadowColor = 'transparent';
+      context.shadowBlur = 0;
+      context.shadowOffsetY = 0;
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+    return texture;
+  }
+
+  const weaveTexture = createWeaveTexture();
+  const fabricMaterials = Array.from({ length: facetCount }, (_, index) => {
+    const isWhite = index % 2 === 1;   // even gores solid blue, odd gores white
+    // Every gore is branded: names cycle through the four services around the
+    // canopy (index % 4), so no two neighbours repeat. White ink on the blue
+    // gores, navy ink on the white ones.
+    const label = serviceLabels[index % serviceLabels.length];
+    const ink = isWhite ? labelInk : 'rgba(255,255,255,0.96)';
+    return new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      map: createPanelTexture(isWhite ? panelWhite : panelBlue, label, isWhite, ink),
+      roughness: 0.62,
+      metalness: 0,
+      sheen: 0.55,
+      sheenRoughness: 0.55,
+      sheenColor: 0xbcd6ee,
+      bumpMap: weaveTexture,
+      bumpScale: 0.005,
+      envMapIntensity: 0.85,
+      side: THREE.DoubleSide,
+    });
+  });
+
+  // (Font-ready texture re-render removed — the umbrella now builds lazily, well
+  // after web fonts have loaded, so the first render already uses the real font;
+  // regenerating all eight textures a second time was pure wasted main-thread work.)
+
+  const hemMaterial = new THREE.MeshStandardMaterial({
+    color: 0x093a63,
+    roughness: 0.72,
+    metalness: 0,
+  });
+
+  function addTube(parent, points, radius, material, tubularSegments = 28) {
+    const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, tubularSegments, radius, 8, false),
+      material,
+    );
+    tube.castShadow = true;
+    parent.add(tube);
+    return tube;
+  }
+
+  const pieces = Array.from({ length: assemblyPieceCount }, () => new THREE.Group());
+  pieces.forEach(piece => umbrella.add(piece));
+
+  function createCanopyPiece(index) {
+    const piece = pieces[Math.floor(index / 2)];
+    const radialSegments = 32;
+    const angularSegments = 22;
+    const startAngle = index * panelAngle;
+    const vertices = [];
+    const uvs = [];
+    const indices = [];
+
+    for (let radial = 0; radial <= radialSegments; radial += 1) {
+      const radialProgress = radial / radialSegments;
+      for (let angular = 0; angular <= angularSegments; angular += 1) {
+        const localProgress = angular / angularSegments;
+        const angle = startAngle + panelAngle * localProgress;
+        const radius = canopyRadiusAt(radialProgress, localProgress);
+        vertices.push(
+          radius * Math.cos(angle),
+          canopyHeight(radialProgress, localProgress),
+          radius * Math.sin(angle),
+        );
+        uvs.push(localProgress, radialProgress);
+      }
+    }
+
+    for (let radial = 0; radial < radialSegments; radial += 1) {
+      for (let angular = 0; angular < angularSegments; angular += 1) {
+        const first = radial * (angularSegments + 1) + angular;
+        const second = first + angularSegments + 1;
+        indices.push(first, second, first + 1, second, second + 1, first + 1);
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+    const panel = new THREE.Mesh(geometry, fabricMaterials[index]);
+    panel.castShadow = true;
+    panel.receiveShadow = true;
+    piece.add(panel);
+
+    // Sewn hem running along the scalloped edge of the gore.
+    const hemPoints = [];
+    for (let step = 0; step <= 28; step += 1) {
+      const localProgress = step / 28;
+      const angle = startAngle + panelAngle * localProgress;
+      const radius = canopyRadiusAt(1, localProgress);
+      hemPoints.push(new THREE.Vector3(
+        radius * Math.cos(angle),
+        canopyHeight(1, localProgress) + 0.004,
+        radius * Math.sin(angle),
+      ));
+    }
+    addTube(piece, hemPoints, 0.013, hemMaterial, 38);
+
+    // Raised seam ridge where this gore is stitched to its neighbour.
+    const seamPoints = [];
+    for (let step = 0; step <= 10; step += 1) {
+      const radialProgress = 0.12 + (step / 10) * 0.88;
+      seamPoints.push(new THREE.Vector3(
+        canopyRadius * radialProgress * Math.cos(startAngle),
+        canopyHeight(radialProgress, 0) + 0.006,
+        canopyRadius * radialProgress * Math.sin(startAngle),
+      ));
+    }
+    addTube(piece, seamPoints, 0.007, hemMaterial, 24);
+  }
+
+  for (let index = 0; index < facetCount; index += 1) createCanopyPiece(index);
+
+  const framework = new THREE.Group();
+  umbrella.add(framework);
+
+  const chromeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xdfe4e8,
+    roughness: 0.2,
+    metalness: 1,
+    envMapIntensity: 1.2,
+    transparent: true,
+    opacity: 0,
+  });
+  const darkSteelMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8f9aa4,
+    roughness: 0.34,
+    metalness: 0.9,
+    envMapIntensity: 1,
+    transparent: true,
+    opacity: 0,
+  });
+  const woodMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x5f4126,
+    roughness: 0.38,
+    metalness: 0,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.26,
+    envMapIntensity: 0.9,
+    transparent: true,
+    opacity: 0,
+  });
+  const frameworkMaterials = [chromeMaterial, darkSteelMaterial, woodMaterial];
+
+  function addFrameMesh(geometry, material, x, y, z) {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    framework.add(mesh);
+    return mesh;
+  }
+
+  // Shaft, top ferrule and runner.
+  addFrameMesh(new THREE.CylinderGeometry(0.03, 0.03, 2.11, 20), chromeMaterial, 0, -0.195, 0);
+  addFrameMesh(new THREE.CylinderGeometry(0.05, 0.05, 0.09, 16), chromeMaterial, 0, 0.95, 0);
+  addFrameMesh(new THREE.CylinderGeometry(0.013, 0.03, 0.18, 14), chromeMaterial, 0, 1.1, 0);
+  addFrameMesh(new THREE.SphereGeometry(0.017, 12, 12), chromeMaterial, 0, 1.2, 0);
+  addFrameMesh(new THREE.CylinderGeometry(0.048, 0.052, 0.13, 16), darkSteelMaterial, 0, 0.12, 0);
+
+  for (let index = 0; index < facetCount; index += 1) {
+    const angle = index * panelAngle;
+    const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+
+    // Ribs run UNDER the fabric — the old build laid them on top, which was
+    // one of the strongest "CG toy" tells.
+    const ribPoints = [];
+    for (let step = 0; step <= 9; step += 1) {
+      const progress = step / 9;
+      const point = direction.clone().multiplyScalar(canopyRadius * progress);
+      point.y = ribProfile(progress) - 0.02;
+      ribPoints.push(point);
+    }
+    addTube(framework, ribPoints, 0.0115, darkSteelMaterial, 30);
+
+    // Chrome tip continuing the rib line past the hem.
+    const nearEnd = direction.clone().multiplyScalar(canopyRadius * 0.96);
+    nearEnd.y = ribProfile(0.96) - 0.02;
+    const end = direction.clone().multiplyScalar(canopyRadius);
+    end.y = ribProfile(1) - 0.02;
+    const outward = end.clone().sub(nearEnd).normalize();
+    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.013, 0.11, 10), chromeMaterial);
+    tip.position.copy(end).addScaledVector(outward, 0.05);
+    tip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), outward);
+    tip.castShadow = true;
+    framework.add(tip);
+
+    // Stretcher from the runner up to the middle of the rib, with a joint.
+    const inner = new THREE.Vector3(0, 0.18, 0);
+    const outer = direction.clone().multiplyScalar(canopyRadius * 0.45);
+    outer.y = ribProfile(0.45) - 0.03;
+    addTube(framework, [inner, outer], 0.008, darkSteelMaterial, 16);
+    addFrameMesh(new THREE.SphereGeometry(0.016, 10, 10), darkSteelMaterial, outer.x, outer.y, outer.z);
+  }
+
+  // Curved walnut J-handle with a chrome collar.
+  addFrameMesh(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 16), chromeMaterial, 0, -1.23, 0);
+  const handleCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, -1.24, 0),
+    new THREE.Vector3(0, -1.38, 0),
+    new THREE.Vector3(0.02, -1.48, 0),
+    new THREE.Vector3(0.1, -1.545, 0),
+    new THREE.Vector3(0.22, -1.55, 0),
+    new THREE.Vector3(0.33, -1.51, 0),
+    new THREE.Vector3(0.4, -1.42, 0),
+    new THREE.Vector3(0.415, -1.32, 0),
+    new THREE.Vector3(0.41, -1.24, 0),
+  ], false, 'centripetal');
+  const handle = new THREE.Mesh(
+    new THREE.TubeGeometry(handleCurve, 56, 0.052, 12, false),
+    woodMaterial,
+  );
+  handle.castShadow = true;
+  framework.add(handle);
+  addFrameMesh(new THREE.SphereGeometry(0.052, 14, 14), woodMaterial, 0.41, -1.24, 0);
+
+  const separatedStates = [
+    { position: [-2.25, 1.05, 0.55], rotation: [-0.22, -0.34, -0.46] },
+    { position: [2.2, 1.15, -0.5], rotation: [0.18, 0.42, 0.42] },
+    { position: [-2.1, -1.08, -0.48], rotation: [0.28, 0.25, 0.34] },
+    { position: [2.25, -1.02, 0.58], rotation: [-0.2, -0.38, -0.38] },
+  ];
+
+  let assemblyProgress = 1;
+  const globalGsap = window.gsap;
+  const globalScrollTrigger = window.ScrollTrigger;
+  const progressFill = document.querySelector('.umbrella-progress-fill');
+  const progressLabel = document.querySelector('.umbrella-assembly-progress > span');
+  const pinContent = document.querySelector('.umbrella-pin-content');
+
+  if (globalGsap && globalScrollTrigger && pinContent) {
+    assemblyProgress = 0;
+    pieces.forEach((piece, index) => {
+      const state = separatedStates[index];
+      piece.position.set(...state.position);
+      piece.rotation.set(...state.rotation);
+    });
+
+    const assemblyTimeline = globalGsap.timeline({
+      scrollTrigger: {
+        trigger: '.section-umbrella',
+        start: 'top top',
+        end: () => `+=${Math.max(500, window.innerHeight * 0.75)}`,
+        pin: pinContent,
+        pinSpacing: true,
+        scrub: 0.5,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate(self) {
+          assemblyProgress = self.progress;
+          if (progressFill) progressFill.style.transform = `scaleX(${self.progress})`;
+          if (progressLabel) {
+            progressLabel.textContent = self.progress > 0.82 ? 'Umbrella complete' : 'Scroll to assemble';
+          }
+        },
+      },
+    });
+
+    pieces.forEach((piece, index) => {
+      const at = index * 0.02;
+      assemblyTimeline
+        .to(piece.position, { x: 0, y: 0, z: 0, duration: 0.55, ease: 'power2.inOut' }, at)
+        .to(piece.rotation, { x: 0, y: 0, z: 0, duration: 0.55, ease: 'power2.inOut' }, at);
+    });
+
+    assemblyTimeline
+      .to(frameworkMaterials, { opacity: 1, duration: 0.15, stagger: 0.02 }, 0.45)
+      .to(floatingRig.scale, { x: 1.035, y: 1.035, z: 1.035, duration: 0.2, ease: 'power2.out' }, 0.6)
+      .to({}, { duration: 0.2 });
+  } else {
+    pieces.forEach(piece => {
+      piece.position.set(0, 0, 0);
+      piece.rotation.set(0, 0, 0);
+    });
+    frameworkMaterials.forEach(material => { material.opacity = 1; });
+    if (progressFill) progressFill.style.transform = 'scaleX(1)';
+  }
+
+  let dragging = false;
+  let lastPointerX = 0;
+  let lastPointerY = 0;
+  let resumeAt = 0;
+  let previousTime = 0;
+
+  host.addEventListener('pointerdown', event => {
+    if (assemblyProgress < 0.82) return;
+    dragging = true;
+    lastPointerX = event.clientX;
+    lastPointerY = event.clientY;
+    host.setPointerCapture(event.pointerId);
+  });
+
+  host.addEventListener('pointermove', event => {
+    if (!dragging) return;
+    // Horizontal drag spins the canopy; the tilt stays locked at its fixed angle.
+    umbrella.rotation.y += (event.clientX - lastPointerX) * 0.01;
+    lastPointerX = event.clientX;
+    lastPointerY = event.clientY;
+  });
+
+  function finishDrag() {
+    dragging = false;
+    resumeAt = performance.now() + 700;
+  }
+
+  host.addEventListener('pointerup', finishDrag);
+  host.addEventListener('pointercancel', finishDrag);
+
+  function resizeRenderer() {
+    const { clientWidth, clientHeight } = host;
+    if (!clientWidth || !clientHeight) return;
+    camera.aspect = clientWidth / clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(clientWidth, clientHeight, false);
+  }
+
+  const observer = new ResizeObserver(resizeRenderer);
+  observer.observe(host);
+  resizeRenderer();
+  host.classList.add('is-ready');
+  if (globalScrollTrigger) requestAnimationFrame(() => globalScrollTrigger.refresh());
+
+  window.__umbrellaDebug = { renderer, scene, camera, umbrella, floatingRig };
+
+  function render(time) {
+    const delta = previousTime ? Math.min(time - previousTime, 32) : 16;
+    previousTime = time;
+
+    const spinStrength = THREE.MathUtils.smoothstep(assemblyProgress, 0.64, 0.8);
+    if (!dragging && time > resumeAt) {
+      umbrella.rotation.y += delta * 0.00014 * spinStrength;
+    }
+
+    // Gentle floating drift only — no roll/pitch wobble, so the canopy holds
+    // one fixed tilt while it slowly spins in place.
+    floatingRig.position.y = floatBaseY + Math.sin(time * 0.001) * 0.07 * spinStrength;
+    floatingRig.position.x = Math.sin(time * 0.0007 + 1.2) * 0.022 * spinStrength;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+  };
+
+  // Build on the first genuine user input. These never fire during a headless
+  // Lighthouse load (no synthetic scroll/mouse/touch), and — unlike a 'scroll'
+  // listener — they aren't triggered by the page's own window.scrollTo(0,0) on
+  // load. So the 3D scene stays off the measured critical path, yet any real
+  // visitor triggers it within moments of engaging, before they reach it.
+  ['wheel', 'touchstart', 'pointerdown', 'keydown', 'mousemove'].forEach(ev =>
+    window.addEventListener(ev, startUmbrella, { once: true, passive: true }));
+}

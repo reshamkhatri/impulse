@@ -1,0 +1,13 @@
+# Not part of the deployed site
+.agents
+.claude
+public
+.backup-*
+reference.png
+style.css
+.img-originals
+optimize_images.py
+service_consulting.jpg
+service_accounting.jpg
+service_tax.jpg
+service_training.jpg
