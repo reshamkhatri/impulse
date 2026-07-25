@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "impulse-site",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5500", "--bind", "127.0.0.1"],
-      "port": 5500
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

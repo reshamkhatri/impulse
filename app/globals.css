@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   /* Colors */
@@ -13,8 +12,8 @@
   --color-text-muted: #64748b;
   
   /* Fonts */
-  --font-sans: 'Montserrat', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-sans: var(--font-montserrat), 'Montserrat', sans-serif;
+  --font-body: var(--font-inter), 'Inter', sans-serif;
   
   /* Spacing & Borders */
   --max-width: 1440px; /* Expanded from 1200px to reduce blank side margins significantly */
@@ -1301,7 +1300,7 @@ textarea:focus-visible {
 /* 5. Contact Section */
 .section-contact {
   padding: 8rem 0;
-  background-image: url('newhero.webp');
+  background-image: url('/newhero.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -3165,6 +3164,14 @@ textarea:focus-visible {
   background-position: 0 0;
   will-change: transform;
   animation: cloud-drift linear infinite;
+  /* Three full-width composited layers drifting forever is real work for the
+     compositor, and the sky is only ever seen inside its own section. app.js
+     adds .sky-active while that section is on screen; paused everywhere else. */
+  animation-play-state: paused;
+}
+
+.section-umbrella.sky-active .cloud-band {
+  animation-play-state: running;
 }
 
 /* Realistic clouds are fractal-noise (feTurbulence) fields, one per depth.
@@ -3927,7 +3934,7 @@ textarea:focus-visible {
   border-radius: 1.45rem;
   background:
     linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.65) 100%),
-    url('services_hero_new.webp') center/cover no-repeat !important;
+    url('/services_hero_new.webp') center/cover no-repeat !important;
   box-shadow: 0 28px 75px rgba(11, 47, 79, 0.13);
 }
 
@@ -4290,7 +4297,7 @@ textarea:focus-visible {
   border-radius: 1.45rem;
   background:
     linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.65) 100%),
-    url('services_hero_new.webp') center/cover no-repeat !important;
+    url('/services_hero_new.webp') center/cover no-repeat !important;
   box-shadow: 0 28px 75px rgba(11, 47, 79, 0.13);
 }
 

@@ -1,12 +1,9 @@
 # Not part of the deployed site
 .agents
 .claude
-public
 .backup-*
-reference.png
-style.css
 .img-originals
-optimize_images.py
+reference.png
 service_consulting.jpg
 service_accounting.jpg
 service_tax.jpg
