@@ -1,7 +1,21 @@
 import Umbrella3D from '@/components/Umbrella3D';
 import MissionBand from '@/components/MissionBand';
+import CardIcon from '@/components/CardIcon';
+import { getSection, getCards } from '@/lib/content';
+import { cloudinaryImage } from '@/lib/cloudinary';
 
-export default function Home() {
+export const revalidate = 300;
+
+export default async function Home() {
+  const [hero, umbrella, servicesHead, trust, testimonials, services] = await Promise.all([
+    getSection('home.hero'),
+    getSection('home.umbrella'),
+    getSection('home.services'),
+    getSection('home.trust'),
+    getSection('home.testimonials'),
+    getCards('home_services')
+  ]);
+
   return (
     <main>
         <section className="hero" id="top">
@@ -18,12 +32,12 @@ export default function Home() {
             <div className="hero-content">
               <h1 className="hero-title">
                 <span className="thin-text">
-                  Find A
+                  {hero.heading}
                 </span>
-                <span className="bold-text">Business Consultant</span>
+                <span className="bold-text">{hero.heading_alt}</span>
               </h1>
 
-              <p className="hero-subheadline">Strategic consulting, accurate accounting, and stress-free tax compliance trusted by 50+ growing businesses across Nepal.</p>
+              <p className="hero-subheadline">{hero.subheading}</p>
 
             </div>
 
@@ -54,7 +68,7 @@ export default function Home() {
           <div className="umbrella-rain" aria-hidden="true"></div>
           <div className="umbrella-pin-content">
             <div className="umbrella-section-copy">
-              <h2 className="umbrella-assembly-title" id="umbrella-heading">Four strengths.<br /><span>One protective umbrella.</span></h2>
+              <h2 className="umbrella-assembly-title" id="umbrella-heading">{umbrella.heading}<br /><span>{umbrella.heading_alt}</span></h2>
             </div>
 
             <div className="umbrella-scene">
@@ -71,94 +85,44 @@ export default function Home() {
           <div className="services-container">
 
             <div className="services-header">
-              <h2 className="services-headline">Tailored Services to Grow &amp; Protect Your Business</h2>
+              <h2 className="services-headline">{servicesHead.heading}</h2>
             </div>
 
             <div className="services-grid-wrapper">
-
-              {/* Card 1 */}
-              <div className="service-grid-card">
-                <div className="sg-card-top">
-                  <div className="sg-card-text">
-                    <h3 className="sg-title">Business Consulting</h3>
-                    <p className="sg-desc">Clear direction aligned with long-term goals and realities.</p>
+              {services.map((service) => (
+                <div className="service-grid-card" key={service.id}>
+                  <div className="sg-card-top">
+                    <div className="sg-card-text">
+                      <h3 className="sg-title">{service.title}</h3>
+                      <p className="sg-desc">{service.description}</p>
+                    </div>
+                    <a
+                      href={service.cta_href || '#contact'}
+                      className="sg-arrow-link"
+                      aria-label={`Learn more about ${service.title}`}
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </a>
                   </div>
-                  <a href="#contact" className="sg-arrow-link" aria-label="Learn more about Business Consulting">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                  </a>
-                </div>
-                <div className="sg-card-image-box">
-                  <img src="/card_team.jpg" alt="Business Consulting" width="640" height="640" decoding="async" loading="lazy" />
-                  <div className="sg-icon-bubble">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="service-grid-card">
-                <div className="sg-card-top">
-                  <div className="sg-card-text">
-                    <h3 className="sg-title">Accounting &amp; Bookkeeping</h3>
-                    <p className="sg-desc">Minimize liabilities and maximize accuracy.</p>
-                  </div>
-                  <a href="#contact" className="sg-arrow-link" aria-label="Learn more about Accounting & Bookkeeping">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                  </a>
-                </div>
-                <div className="sg-card-image-box">
-                  <img src="/heroimage.webp" alt="Accounting & Bookkeeping" width="700" height="394" decoding="async" loading="lazy" />
-                  <div className="sg-icon-bubble">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M2 15h10"></path><path d="M2 18h10"></path><path d="M2 21h10"></path></svg>
+                  <div className="sg-card-image-box">
+                    <img
+                      src={cloudinaryImage(service.image_url, { width: 640, height: 640 })}
+                      alt={service.title}
+                      width="640" height="640" decoding="async" loading="lazy"
+                    />
+                    <div className="sg-icon-bubble">
+                      <CardIcon name={service.icon} size={18} strokeWidth={2} />
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Card 3 */}
-              <div className="service-grid-card">
-                <div className="sg-card-top">
-                  <div className="sg-card-text">
-                    <h3 className="sg-title">Taxation</h3>
-                    <p className="sg-desc">Prepare for the future with total confidence.</p>
-                  </div>
-                  <a href="#contact" className="sg-arrow-link" aria-label="Learn more about Taxation">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                  </a>
-                </div>
-                <div className="sg-card-image-box">
-                  <img src="/card_report.jpg" alt="Taxation" width="640" height="640" decoding="async" loading="lazy" />
-                  <div className="sg-icon-bubble">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 4 */}
-              <div className="service-grid-card">
-                <div className="sg-card-top">
-                  <div className="sg-card-text">
-                    <h3 className="sg-title">VAT Filing</h3>
-                    <p className="sg-desc">Ensuring full compliance with Nepal's regulations.</p>
-                  </div>
-                  <a href="#contact" className="sg-arrow-link" aria-label="Learn more about VAT Filing">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                  </a>
-                </div>
-                <div className="sg-card-image-box">
-                  <img src="/about_office.jpg" alt="VAT Filing" width="700" height="391" decoding="async" loading="lazy" />
-                  <div className="sg-icon-bubble">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                  </div>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         </section>
 
     {/* Trust Bar / Logo Ticker */}
         <section className="trust-bar">
-          <p className="trust-bar-headline">Trusted by 100+ Companies, Professionals & Growing Teams</p>
+          <p className="trust-bar-headline">{trust.heading}</p>
           <div className="trust-ticker-wrapper">
             <div className="trust-ticker-track">
               {/* Set 1 */}
@@ -238,8 +202,8 @@ export default function Home() {
         {/* Client Testimonials Section (Dual-Row Infinite Scrolling Marquee) */}
         <section className="section-testimonials" id="testimonials">
           <div className="testimonials-header-container">
-            <h2 className="testimonials-main-title">What people are saying?</h2>
-            <p className="testimonials-subtitle">Don't just take our word for it - see what our partners have to say about their experience!</p>
+            <h2 className="testimonials-main-title">{testimonials.heading}</h2>
+            <p className="testimonials-subtitle">{testimonials.subheading}</p>
           </div>
 
           <div className="testimonials-marquee-wrapper">

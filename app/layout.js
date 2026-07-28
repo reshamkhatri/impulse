@@ -1,12 +1,12 @@
-import './globals.css';
 import { Inter, Montserrat } from 'next/font/google';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import Chatbot from '@/components/Chatbot';
-import SiteMotion from '@/components/SiteMotion';
-import BodyClass from '@/components/BodyClass';
 
-/* next/font self-hosts these at build time and inlines the @font-face rules, so
+/* Root layout. Deliberately thin: it owns <html>/<body> and the fonts, and
+   nothing else. The marketing site's header, footer, smooth-scroll shell and
+   stylesheet live in app/(site)/layout.js, and the admin panel brings its own
+   chrome — so /admin isn't rendered inside a scroll-jacked page with a
+   contact-us button in the corner.
+
+   next/font self-hosts these at build time and inlines the @font-face rules, so
    there's no render-blocking round trip to fonts.googleapis.com and no layout
    shift while they swap in. The variable ranges match what globals.css asks for
    (weights 300–900 across both families). */
@@ -43,23 +43,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
-      <body>
-        <BodyClass />
-        <Navbar />
-
-        {/* Smooth-scroll structure (required by GSAP ScrollSmoother). The header
-            and chatbot sit outside it deliberately — both are fixed and must not
-            be transformed along with the scrolling content. */}
-        <div id="smooth-wrapper">
-          <div id="smooth-content">
-            {children}
-            <Footer />
-          </div>
-        </div>
-
-        <Chatbot />
-        <SiteMotion />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

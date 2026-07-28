@@ -1,16 +1,21 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllPosts, getPost, formatDate } from '@/lib/posts';
+import { getAllPosts, getPost, getSection, formatDate } from '@/lib/content';
+import { cloudinaryImage } from '@/lib/cloudinary';
 
-/* Prerenders one static page per post at build time. Add a post to
-   lib/posts.js and its page appears here automatically. */
-export function generateStaticParams() {
-  return getAllPosts().map((post) => ({ slug: post.slug }));
+export const revalidate = 300;
+
+/* Prerenders a page per published post at build time. Posts written later are
+   rendered on first request and then cached — the admin panel revalidates this
+   route on save, so an edit is live immediately. */
+export async function generateStaticParams() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPost(slug);
   if (!post) return { title: 'Article not found' };
   return {
     title: post.title,
@@ -19,7 +24,8 @@ export async function generateMetadata({ params }) {
       title: post.title,
       description: post.excerpt,
       type: 'article',
-      publishedTime: post.date
+      publishedTime: post.date,
+      images: post.coverImage ? [post.coverImage] : undefined
     }
   };
 }
@@ -31,7 +37,7 @@ function Block({ block }) {
     case 'ul':
       return (
         <ul>
-          {block.items.map((item) => <li key={item}>{item}</li>)}
+          {(block.items ?? []).map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       );
     case 'quote':
@@ -44,10 +50,11 @@ function Block({ block }) {
 
 export default async function ArticlePage({ params }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const [post, cta] = await Promise.all([getPost(slug), getSection('blog.cta')]);
   if (!post) notFound();
 
-  const others = getAllPosts().filter((p) => p.slug !== post.slug).slice(0, 2);
+  const all = await getAllPosts();
+  const others = all.filter((p) => p.slug !== post.slug).slice(0, 2);
 
   return (
     <main>
@@ -74,13 +81,27 @@ export default async function ArticlePage({ params }) {
             <span className="article-author">By {post.author}</span>
           </header>
 
+          {post.coverImage && (
+            <figure className="article-cover">
+              {/* 'limit' rather than 'fill': a cover is whatever shape it was
+                  shot in, and cropping one to a fixed box tends to behead
+                  people. */}
+              <img
+                src={cloudinaryImage(post.coverImage, { width: 1000, crop: 'limit' })}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          )}
+
           <div className="article-body">
             {post.body.map((block, i) => <Block block={block} key={i} />)}
           </div>
 
           <aside className="article-cta">
-            <h2>Need help with this?</h2>
-            <p>Talk to the team that handles compliance, accounting, and tax for 50+ businesses across Nepal.</p>
+            <h2>{cta.heading}</h2>
+            <p>{cta.subheading}</p>
             <Link href="/#contact" className="btn-pill-white">
               <span>Book a free consultation</span>
               <span className="btn-arrow-icon" aria-hidden="true">&rarr;</span>

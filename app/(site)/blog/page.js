@@ -1,14 +1,20 @@
 import Link from 'next/link';
-import { getAllPosts, formatDate } from '@/lib/posts';
+import { getAllPosts, getSection, formatDate } from '@/lib/content';
 
-export const metadata = {
-  title: 'Blogs & Articles',
-  description:
-    'Practical guidance on tax, VAT, company compliance, accounting, and business advisory for growing businesses in Nepal.'
-};
+export const revalidate = 300;
 
-export default function BlogIndex() {
-  const posts = getAllPosts();
+export async function generateMetadata() {
+  const head = await getSection('blog.index');
+  return {
+    title: 'Blogs & Articles',
+    description:
+      head.subheading ||
+      'Practical guidance on tax, VAT, company compliance, accounting, and business advisory for growing businesses in Nepal.'
+  };
+}
+
+export default async function BlogIndex() {
+  const [posts, head] = await Promise.all([getAllPosts(), getSection('blog.index')]);
   const [lead, ...rest] = posts;
 
   return (
@@ -17,15 +23,12 @@ export default function BlogIndex() {
         <div className="blog-container">
 
           <header className="blog-head">
-            <h1 className="blog-headline" id="blog-heading">Blogs &amp; Articles</h1>
-            <p className="blog-sub">
-              Practical guidance on tax, compliance, accounting, and running a business in Nepal —
-              written by the team that does this work every day.
-            </p>
+            <h1 className="blog-headline" id="blog-heading">{head.heading}</h1>
+            <p className="blog-sub">{head.subheading}</p>
           </header>
 
           {posts.length === 0 ? (
-            /* Renders when the POSTS array is emptied, instead of a bare page */
+            /* Renders before the first post is published, instead of a bare page */
             <p className="blog-empty">No articles published yet — check back shortly.</p>
           ) : (
             <>
