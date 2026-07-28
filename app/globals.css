@@ -4077,8 +4077,9 @@ textarea:focus-visible {
   transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
 }
 
+/* No vertical offset: lifting this card left the row visibly out of line.
+   The border and heavier shadow carry the emphasis on their own. */
 .services-page-plan-card.is-featured {
-  transform: translateY(-0.8rem);
   border-color: rgba(0, 125, 183, 0.32);
   box-shadow: 0 28px 62px rgba(4, 38, 68, 0.18);
 }
@@ -4649,4 +4650,553 @@ textarea:focus-visible {
 
 .light-page .nav-toggle-line {
   background-color: #0f172a !important;
-}
+}
+
+/* ==========================================================================
+   Mission / vision / goal band — sits between the umbrella scene and the
+   services grid. Deliberately unboxed: three left-aligned columns under a
+   hairline rule, one accent colour throughout. The umbrella's border-bottom
+   and the services grid's border-top already draw the section's edges.
+   ========================================================================== */
+.section-pillars {
+  background: #ffffff;
+  padding: 5.25rem 0 5.75rem;
+}
+
+.pillars-container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.pillars-headline {
+  font-family: var(--font-sans);
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3.25rem;
+}
+
+.pillar {
+  text-align: left;
+}
+
+/* Fades out to the right, so the three rules give the row a quiet grid
+   structure without reading as three hard lines. */
+.pillar-rule {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-brand-blue) 0%, rgba(0, 125, 183, .12) 100%);
+  transform-origin: left center;
+  margin-bottom: 1.85rem;
+}
+
+.pillar-icon {
+  display: block;
+  color: var(--color-brand-blue);
+  margin-bottom: 1.15rem;
+}
+
+.pillar-label {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.55rem;
+}
+
+.pillar-line {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 23rem;
+}
+
+@media (max-width: 1024px) {
+  .section-pillars {
+    padding: 4.25rem 0 4.75rem;
+  }
+
+  .pillars-headline {
+    margin-bottom: 2.75rem;
+  }
+
+  .pillars-grid {
+    gap: 2.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-pillars {
+    padding: 3.5rem 0 3.75rem;
+  }
+
+  .pillars-headline {
+    margin-bottom: 2.25rem;
+  }
+
+  .pillars-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .pillar-rule {
+    margin-bottom: 1.4rem;
+  }
+
+  .pillar-line {
+    max-width: none;
+  }
+}
+
+/* ==========================================================================
+   Blogs & Articles — index listing and individual article
+   ========================================================================== */
+.blog-index,
+.article {
+  background: #f7fafc;
+  /* clears the fixed header */
+  padding: 9rem 0 6rem;
+  min-height: 70vh;
+}
+
+.blog-container,
+.article-container {
+  width: 100%;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.blog-head {
+  margin-bottom: 3rem;
+}
+
+.blog-headline {
+  font-family: var(--font-sans);
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 0.9rem;
+}
+
+.blog-sub {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 42rem;
+}
+
+.blog-empty {
+  color: var(--color-text-muted);
+  padding: 3rem 0;
+}
+
+/* Shared meta row: category pill, dot separator, date, read time */
+.blog-tag {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brand-blue);
+  background: rgba(0, 125, 183, .09);
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--border-radius-pill);
+}
+
+.blog-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #b6c6d6;
+  flex: 0 0 auto;
+}
+
+.blog-lead-meta,
+.blog-card-meta,
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.blog-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--color-brand-blue);
+}
+
+.blog-more svg {
+  transition: transform 320ms cubic-bezier(.16, 1, .3, 1);
+}
+
+/* --- Lead (newest) post ------------------------------------------------- */
+.blog-lead {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #e6eef8;
+  border-radius: var(--border-radius-card);
+  padding: 2.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 14px 34px rgba(15, 23, 42, .06);
+  transition:
+    transform 480ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 480ms cubic-bezier(.16, 1, .3, 1),
+    border-color 480ms ease;
+}
+
+.blog-lead:hover,
+.blog-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 125, 183, .3);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, .05), 0 24px 48px rgba(0, 125, 183, .14);
+}
+
+.blog-lead:hover .blog-more svg,
+.blog-card:hover .blog-more svg {
+  transform: translateX(4px);
+}
+
+.blog-lead-title {
+  font-family: var(--font-sans);
+  font-size: clamp(1.5rem, 2.8vw, 2.05rem);
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 0.8rem;
+}
+
+.blog-lead-excerpt {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 46rem;
+  margin-bottom: 1.4rem;
+}
+
+/* --- Listing grid ------------------------------------------------------- */
+.blog-grid,
+.article-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e6eef8;
+  border-radius: var(--border-radius-card);
+  padding: 1.9rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 28px rgba(15, 23, 42, .05);
+  transition:
+    transform 480ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 480ms cubic-bezier(.16, 1, .3, 1),
+    border-color 480ms ease;
+}
+
+.blog-card-title {
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin-bottom: 0.65rem;
+}
+
+.blog-card-excerpt {
+  color: var(--color-text-muted);
+  font-size: 0.93rem;
+  line-height: 1.65;
+  /* pushes the footer down so every card's footer lines up */
+  flex: 1 1 auto;
+  margin-bottom: 1.35rem;
+}
+
+.blog-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #eef3f9;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Article ------------------------------------------------------------ */
+.article-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--color-brand-blue);
+  margin-bottom: 2rem;
+}
+
+.article-back svg {
+  transition: transform 320ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.article-back:hover svg {
+  transform: translateX(-4px);
+}
+
+.article-head {
+  max-width: 46rem;
+  margin-bottom: 2.75rem;
+}
+
+.article-title {
+  font-family: var(--font-sans);
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin-bottom: 1rem;
+}
+
+.article-standfirst {
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: #46586c;
+  margin-bottom: 1.2rem;
+}
+
+.article-author {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.article-body {
+  max-width: 44rem;
+  background: #ffffff;
+  border: 1px solid #e6eef8;
+  border-radius: var(--border-radius-card);
+  padding: 2.75rem;
+}
+
+.article-body h2 {
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.015em;
+  margin: 2.25rem 0 0.85rem;
+}
+
+.article-body h2:first-child {
+  margin-top: 0;
+}
+
+.article-body p {
+  color: #46586c;
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 1.15rem;
+}
+
+.article-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.article-body li {
+  position: relative;
+  padding-left: 1.6rem;
+  color: #46586c;
+  line-height: 1.7;
+}
+
+.article-body li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-brand-blue);
+}
+
+.article-body blockquote {
+  margin: 1.75rem 0;
+  padding: 1.1rem 0 1.1rem 1.5rem;
+  border-left: 3px solid var(--color-brand-blue);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--color-text-dark);
+}
+
+.article-cta {
+  max-width: 44rem;
+  margin: 2.5rem 0 3.5rem;
+  padding: 2.25rem 2.5rem;
+  border-radius: var(--border-radius-card);
+  background: linear-gradient(160deg, var(--color-brand-blue), #0a5390);
+  color: #ffffff;
+  box-shadow: 0 22px 46px rgba(0, 125, 183, .26);
+}
+
+.article-cta h2 {
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.article-cta p {
+  color: rgba(255, 255, 255, .88);
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+  max-width: 32rem;
+}
+
+.article-more-heading {
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: 1.35rem;
+}
+
+@media (max-width: 900px) {
+  .blog-grid,
+  .article-more-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .blog-index,
+  .article {
+    padding: 7rem 0 4rem;
+  }
+
+  .blog-lead {
+    padding: 1.75rem;
+  }
+
+  .article-body {
+    padding: 1.75rem;
+  }
+
+  .article-cta {
+    padding: 1.75rem;
+  }
+
+  /* No hover on touch — the lift would stick after a tap. */
+  .blog-lead:hover,
+  .blog-card:hover {
+    transform: none;
+    border-color: #e6eef8;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 12px 28px rgba(15, 23, 42, .05);
+  }
+}
+
+/* ==========================================================================
+   WhatsApp quick-contact (navbar + mobile menu)
+   Kept in WhatsApp's own green rather than the brand palette — it's a
+   recognised mark, and people scan for that colour rather than read the icon.
+   ========================================================================== */
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background-color: #25d366;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(37, 211, 102, .32);
+  transition:
+    transform 320ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 320ms cubic-bezier(.16, 1, .3, 1),
+    background-color 320ms ease;
+}
+
+.whatsapp-btn:hover {
+  background-color: #1fbb5a;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(37, 211, 102, .42);
+}
+
+.whatsapp-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+/* The nav gap is tuned for the pill button; the icon wants to sit closer. */
+.nav-actions {
+  gap: 0.85rem;
+}
+
+/* Matching entry in the full-screen mobile menu */
+.mobile-menu-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: var(--border-radius-pill);
+  background-color: #25d366;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(37, 211, 102, .3);
+  transition: background-color 320ms ease, transform 320ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.mobile-menu-whatsapp:hover {
+  background-color: #1fbb5a;
+}
+
+@media (max-width: 560px) {
+  .whatsapp-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+}

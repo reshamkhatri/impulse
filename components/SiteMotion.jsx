@@ -259,6 +259,33 @@ export default function SiteMotion() {
         });
       };
 
+      /* Mission / vision / goal — a choreographed entrance rather than one
+         blanket fade: the eyebrow rule draws itself out, the heading lifts,
+         the cards float up and come into focus, then each card's accent edge
+         wipes across and its icon pops in. Overlapping starts (the negative
+         offsets) are what make it read as one continuous move. */
+      if (document.querySelector('.section-pillars')) {
+        const pillarsTl = gsap.timeline({
+          scrollTrigger: { trigger: '.section-pillars', start: 'top 80%', once: true },
+          defaults: { ease: 'power3.out' }
+        });
+
+        pillarsTl
+          .from('.pillars-headline', { y: 28, opacity: 0, duration: 0.85 })
+          /* Each rule draws itself left→right, and the column's contents follow
+             it up in sequence — the overlapping starts are what make three
+             columns read as one continuous move rather than three fades. */
+          .from('.pillar-rule', {
+            scaleX: 0, transformOrigin: 'left center',
+            duration: 0.95, stagger: 0.13
+          }, '-=0.45')
+          .from('.pillar-icon', {
+            y: 18, opacity: 0, duration: 0.75, stagger: 0.13
+          }, '-=0.75')
+          .from('.pillar-label', { y: 18, opacity: 0, duration: 0.65, stagger: 0.13 }, '-=0.62')
+          .from('.pillar-line', { y: 16, opacity: 0, duration: 0.65, stagger: 0.13 }, '-=0.52');
+      }
+
       reveal('.services-header', '.section-services-grid', { y: 30 });
       /* Service cards: a clean one-time load-in that plays through on its own
          (NOT scrubbed to scroll, so it can never freeze half-slid or slide back
@@ -266,13 +293,21 @@ export default function SiteMotion() {
       if (document.querySelector('.services-grid-wrapper')) {
         gsap.from('.service-grid-card', {
           scrollTrigger: { trigger: '.services-grid-wrapper', start: 'top 82%', once: true },
-          y: 52, opacity: 0, scale: 0.94, duration: 0.8, ease: 'power3.out', stagger: 0.12
+          y: 52, opacity: 0, scale: 0.94, duration: 0.8, ease: 'power3.out', stagger: 0.12,
+          // see note on the plan cards — the leftover inline transform would
+          // otherwise outrank .service-grid-card:hover and kill the lift
+          clearProps: 'transform'
         });
       }
+      /* The three plan cards rise as one row — a stagger here left them visibly
+         out of line while it played, which read as a layout bug. clearProps
+         drops GSAP's inline transform at the end; without it the leftover
+         inline style outranks the CSS :hover rule and the lift never fires. */
       if (document.querySelector('.services-page-card-row')) {
         gsap.from('.services-page-plan-card', {
           scrollTrigger: { trigger: '.services-page-card-row', start: 'top 84%', once: true },
-          y: 44, opacity: 0, scale: 0.96, duration: 0.75, ease: 'power3.out', stagger: 0.1
+          y: 44, opacity: 0, scale: 0.96, duration: 0.85, ease: 'power3.out',
+          clearProps: 'transform'
         });
       }
       if (document.querySelector('.cards-grid')) {
@@ -282,6 +317,40 @@ export default function SiteMotion() {
           x: (i) => (i % 2 === 0 ? -40 : 40), // slide left and right
           opacity: 0, duration: 1.0, ease: 'power3.out', stagger: 0.2
         });
+      }
+
+      /* Blog index — heading, then the lead post, then the grid cascades in.
+         Built as one timeline so the whole page settles as a single move. */
+      if (document.querySelector('.blog-index')) {
+        gsap.timeline({ defaults: { ease: 'power3.out' } })
+          .from('.blog-headline', { y: 30, opacity: 0, duration: 0.8 })
+          .from('.blog-sub', { y: 22, opacity: 0, duration: 0.7 }, '-=0.55')
+          .from('.blog-lead', { y: 46, opacity: 0, duration: 0.9, clearProps: 'transform' }, '-=0.45')
+          .from('.blog-grid .blog-card', {
+            y: 40, opacity: 0, duration: 0.8, stagger: 0.12, clearProps: 'transform'
+          }, '-=0.6');
+      }
+
+      /* Article — the reading column lifts in, then anything below it reveals
+         on scroll like the rest of the site. */
+      if (document.querySelector('.article')) {
+        gsap.timeline({ defaults: { ease: 'power3.out' } })
+          .from('.article-back', { x: -14, opacity: 0, duration: 0.55 })
+          .from('.article-meta', { y: 16, opacity: 0, duration: 0.55 }, '-=0.35')
+          .from('.article-title', { y: 30, opacity: 0, duration: 0.85 }, '-=0.4')
+          .from('.article-standfirst', { y: 22, opacity: 0, duration: 0.7 }, '-=0.6')
+          .from('.article-author', { y: 16, opacity: 0, duration: 0.6 }, '-=0.5')
+          .from('.article-body', { y: 40, opacity: 0, duration: 0.9, clearProps: 'transform' }, '-=0.55');
+
+        reveal('.article-cta', '.article-cta', { y: 34 });
+        reveal('.article-more-heading', '.article-more', { y: 24 });
+        if (document.querySelector('.article-more-grid')) {
+          gsap.from('.article-more-grid .blog-card', {
+            scrollTrigger: { trigger: '.article-more-grid', start: 'top 88%', once: true },
+            y: 36, opacity: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out',
+            clearProps: 'transform'
+          });
+        }
       }
 
       reveal('.team-header', '.section-team', { y: 30 });

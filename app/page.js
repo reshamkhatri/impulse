@@ -1,4 +1,5 @@
 import Umbrella3D from '@/components/Umbrella3D';
+import MissionBand from '@/components/MissionBand';
 
 export default function Home() {
   return (
@@ -61,6 +62,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Mission / vision / goal, one line each */}
+        <MissionBand />
 
         {/* 2. Re-designed Services Section */}
         <section className="section-services-grid" id="services">
@@ -248,7 +252,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_one.jpg" alt="Constellation School Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Constellation School</h4>
+                      <h3 className="pastel-author-name">Constellation School</h3>
                       <span className="pastel-author-desc">Education Sector, Nepal</span>
                     </div>
                   </div>
@@ -259,7 +263,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_two.jpg" alt="Civil Verse Construction Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Civil Verse Construction</h4>
+                      <h3 className="pastel-author-name">Civil Verse Construction</h3>
                       <span className="pastel-author-desc">Infrastructure, Lalitpur</span>
                     </div>
                   </div>
@@ -270,7 +274,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_three.jpg" alt="Audio Visual Arts Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Audio Visual Arts</h4>
+                      <h3 className="pastel-author-name">Audio Visual Arts</h3>
                       <span className="pastel-author-desc">Aavas Media, Kathmandu</span>
                     </div>
                   </div>
@@ -281,7 +285,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_four.jpg" alt="Rotary Club Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Rotary Club KTM North</h4>
+                      <h3 className="pastel-author-name">Rotary Club KTM North</h3>
                       <span className="pastel-author-desc">Non-Profit Organization</span>
                     </div>
                   </div>
@@ -293,7 +297,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_one.jpg" alt="Constellation School Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Constellation School</h4>
+                      <h3 className="pastel-author-name">Constellation School</h3>
                       <span className="pastel-author-desc">Education Sector, Nepal</span>
                     </div>
                   </div>
@@ -303,7 +307,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_two.jpg" alt="Civil Verse Construction Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Civil Verse Construction</h4>
+                      <h3 className="pastel-author-name">Civil Verse Construction</h3>
                       <span className="pastel-author-desc">Infrastructure, Lalitpur</span>
                     </div>
                   </div>
@@ -313,7 +317,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_three.jpg" alt="Audio Visual Arts Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Audio Visual Arts</h4>
+                      <h3 className="pastel-author-name">Audio Visual Arts</h3>
                       <span className="pastel-author-desc">Aavas Media, Kathmandu</span>
                     </div>
                   </div>
@@ -323,7 +327,7 @@ export default function Home() {
                   <div className="testimonial-pastel-author">
                     <img src="/avatar_four.jpg" alt="Rotary Club Representative" className="pastel-author-img" width="128" height="128" decoding="async" loading="lazy" />
                     <div className="pastel-author-info">
-                      <h4 className="pastel-author-name">Rotary Club KTM North</h4>
+                      <h3 className="pastel-author-name">Rotary Club KTM North</h3>
                       <span className="pastel-author-desc">Non-Profit Organization</span>
                     </div>
                   </div>
@@ -340,7 +344,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#1a73e8' }}>b</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">bggroupcompany</h4>
+                      <h3 className="gr-name">bggroupcompany</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -361,7 +365,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#d93025' }}>K</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Khusi Kendra</h4>
+                      <h3 className="gr-name">Khusi Kendra</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -382,7 +386,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#188038' }}>S</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Sagoon Lamichhane</h4>
+                      <h3 className="gr-name">Sagoon Lamichhane</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -403,7 +407,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#a142f4' }}>M</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Mahaprashad Pathak</h4>
+                      <h3 className="gr-name">Mahaprashad Pathak</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -424,7 +428,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#f29900' }}>N</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Niruta Baram</h4>
+                      <h3 className="gr-name">Niruta Baram</h3>
                       <span className="gr-subtitle">2 reviews</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -445,7 +449,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#009688' }}>K</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Keshab Ghimire</h4>
+                      <h3 className="gr-name">Keshab Ghimire</h3>
                       <span className="gr-subtitle">Local Guide · 26 reviews</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -468,7 +472,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#1a73e8' }}>b</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">bggroupcompany</h4>
+                      <h3 className="gr-name">bggroupcompany</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -489,7 +493,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#d93025' }}>K</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Khusi Kendra</h4>
+                      <h3 className="gr-name">Khusi Kendra</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -510,7 +514,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#188038' }}>S</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Sagoon Lamichhane</h4>
+                      <h3 className="gr-name">Sagoon Lamichhane</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -531,7 +535,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#a142f4' }}>M</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Mahaprashad Pathak</h4>
+                      <h3 className="gr-name">Mahaprashad Pathak</h3>
                       <span className="gr-subtitle">1 review</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -552,7 +556,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#f29900' }}>N</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Niruta Baram</h4>
+                      <h3 className="gr-name">Niruta Baram</h3>
                       <span className="gr-subtitle">2 reviews</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>
@@ -573,7 +577,7 @@ export default function Home() {
                   <div className="gr-header">
                     <div className="gr-avatar-circle" style={{ backgroundColor: '#009688' }}>K</div>
                     <div className="gr-author-info">
-                      <h4 className="gr-name">Keshab Ghimire</h4>
+                      <h3 className="gr-name">Keshab Ghimire</h3>
                       <span className="gr-subtitle">Local Guide · 26 reviews</span>
                     </div>
                     <div className="gr-options"><svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg></div>

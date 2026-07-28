@@ -10,11 +10,8 @@ export default function ServicesPage() {
         <section className="services-page-hero" id="services">
           <div className="section-container services-page-hero-shell">
             <div className="services-page-blue-stage">
-              <div className="services-page-soft-block services-page-soft-left" aria-hidden="true"></div>
-              <div className="services-page-soft-block services-page-soft-right" aria-hidden="true"></div>
 
               <div className="services-page-hero-copy">
-                <span className="services-page-kicker"><i></i> Impulse services</span>
                 <h1>Simple, reliable business support.</h1>
                 <p>Choose the support your business needs today, then grow into deeper compliance, accounting, and advisory care as your work expands.</p>
               </div>

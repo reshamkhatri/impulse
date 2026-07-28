@@ -67,18 +67,19 @@ export default function Footer() {
 
           {/* Col 2: Company Links */}
           <div className="footer-col links-col">
-            <h4 className="footer-col-header">Company</h4>
+            <h3 className="footer-col-header">Company</h3>
             <nav className="footer-links-nav">
               <Link href="/">Home</Link>
+              <Link href="/about-us">About Us</Link>
               <Link href="/services">Services</Link>
-              <Link href="/#testimonials">Testimonials</Link>
+              <Link href="/blog">Blogs &amp; Articles</Link>
               <a href="#contact">Contact</a>
             </nav>
           </div>
 
           {/* Col 3: Product/Services Links */}
           <div className="footer-col links-col">
-            <h4 className="footer-col-header">Services</h4>
+            <h3 className="footer-col-header">Services</h3>
             <nav className="footer-links-nav">
               <Link href="/services">Business Consulting</Link>
               <Link href="/services">Accounting &amp; Bookkeeping</Link>
@@ -89,7 +90,7 @@ export default function Footer() {
 
           {/* Col 4: Newsletter */}
           <div className="footer-col newsletter-col">
-            <h4 className="footer-col-header">Newsletter</h4>
+            <h3 className="footer-col-header">Newsletter</h3>
             <p className="footer-newsletter-text">Get compliance tips, product updates, and insights on working smarter in Nepal.</p>
             <form action="#" className="footer-newsletter-form">
               <div className="newsletter-input-wrapper">
