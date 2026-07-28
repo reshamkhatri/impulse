@@ -31,7 +31,7 @@ export default function Umbrella3D() {
       className="umbrella-canvas"
       ref={hostRef}
       role="img"
-      aria-label="Four canopy pieces assembling into a realistic rotating blue-and-white striped umbrella with a chrome frame and wooden handle."
+      aria-label="Four canopy pieces assembling into a realistic rotating blue-and-white striped umbrella with a chrome frame and an orange handle."
     >
       <span className="three-loading">Building your umbrella</span>
     </div>

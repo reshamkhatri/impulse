@@ -1,5 +1,16 @@
 import Link from 'next/link';
 
+/* The government and regulator portals clients get pointed at most often.
+   Labels are shortened to the names people use, because the footer column is
+   too narrow for the full official titles. */
+const QUICK_LINKS = [
+  { label: 'Inland Revenue (IRD)', href: 'https://ird.gov.np/' },
+  { label: 'Company Registrar', href: 'https://camis.ocr.gov.np/login' },
+  { label: 'Ministry of Finance', href: 'https://mof.gov.np/' },
+  { label: 'Nepal Rastra Bank', href: 'https://www.nrb.org.np/' },
+  { label: 'Ministry of Labour', href: 'https://www.moless.gov.np/' }
+];
+
 /* Shared site footer. Lives inside #smooth-content (see app/layout.js) because
    ScrollSmoother has to own everything that scrolls. */
 export default function Footer() {
@@ -81,27 +92,31 @@ export default function Footer() {
           <div className="footer-col links-col">
             <h3 className="footer-col-header">Services</h3>
             <nav className="footer-links-nav">
-              <Link href="/services">Business Consulting</Link>
+              <Link href="/services">Company Compliance</Link>
               <Link href="/services">Accounting &amp; Bookkeeping</Link>
-              <Link href="/services">VAT Filing</Link>
-              <Link href="/services">Taxation Advisory</Link>
+              <Link href="/services">Tax &amp; VAT Filing</Link>
+              <Link href="/services">Other Services</Link>
             </nav>
           </div>
 
-          {/* Col 4: Newsletter */}
-          <div className="footer-col newsletter-col">
-            <h3 className="footer-col-header">Newsletter</h3>
-            <p className="footer-newsletter-text">Get compliance tips, product updates, and insights on working smarter in Nepal.</p>
-            <form action="#" className="footer-newsletter-form">
-              <div className="newsletter-input-wrapper">
-                <input type="email" placeholder="Email address" required className="newsletter-input-field" />
-                <button type="submit" className="newsletter-submit-btn">
-                  <span>Subscribe</span>
-                  <span className="btn-arrow-icon">&rarr;</span>
-                </button>
-              </div>
-            </form>
+          {/* Col 4: the government portals clients are most often sent to.
+              All external, so they open in a new tab and carry noreferrer. */}
+          <div className="footer-col links-col">
+            <h3 className="footer-col-header">Quick Links</h3>
+            <nav className="footer-links-nav">
+              {QUICK_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
           </div>
+
         </div>
 
         {/* Floating Capsule Bottom Footer Bar */}

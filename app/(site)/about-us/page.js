@@ -10,23 +10,6 @@ export const metadata = {
     'Meet the Impulse Investment and Management team — corporate consulting, accounting, audits, and VAT filings for businesses across Nepal.'
 };
 
-function LinkedInIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
 export default async function AboutPage() {
   const [hero, intro, mvgSection, mvgCards, ceoSection, ceo, bodSection, board] =
     await Promise.all([
@@ -88,11 +71,6 @@ export default async function AboutPage() {
                 <div className="mvg-icon"><CardIcon name={card.icon} size={26} strokeWidth={2} /></div>
                 <h3>{card.title}</h3>
                 <p>{card.description}</p>
-                <ul className="mvg-list">
-                  {card.bullets.map((item) => (
-                    <li key={item}><CheckIcon />{item}</li>
-                  ))}
-                </ul>
               </article>
             ))}
           </div>
@@ -132,30 +110,13 @@ export default async function AboutPage() {
               <h2>{bodSection.heading}</h2>
               <p>{bodSection.subheading}</p>
             </div>
+            {/* Names only — no portraits, roles, bios or social links. The
+                columns still hold that data, so the admin panel keeps it and it
+                can be surfaced again without a migration. */}
             <div className="bod-grid">
               {board.map((member) => (
                 <article className="bod-card" key={member.id}>
-                  <div className="bod-photo">
-                    <img
-                      src={cloudinaryImage(member.photo_url, { width: 500, height: 500 })}
-                      alt={member.name}
-                      width="500" height="500" loading="lazy" decoding="async"
-                    />
-                  </div>
-                  <div className="bod-info">
-                    <span className="bod-name">{member.name}</span>
-                    <span className="bod-role">{member.role}</span>
-                    {/* Bios are optional — a member with none keeps the tidy
-                        name/role card the page started with. */}
-                    {member.bio && <p className="bod-bio">{member.bio}</p>}
-                    {member.linkedin_url && (
-                      <div className="bod-socials">
-                        <a href={member.linkedin_url} aria-label={`${member.name} on LinkedIn`}>
-                          <LinkedInIcon />
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                  <span className="bod-name">{member.name}</span>
                 </article>
               ))}
             </div>

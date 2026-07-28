@@ -179,17 +179,17 @@ create policy "sections are writable by admins"
 -- ---------------------------------------------------------------------------
 -- All the repeating cards on the site share one shape, so they share one
 -- table. `section` decides where a card appears:
---   home_services   the four service cards on the home page
---   page_services   the three plan cards on /services
---   support_steps   the numbered "01 / 02 / 03" steps on /services
---   pillars         the mission / vision / goal one-liners on the home page
---   mvg             the mission / vision / goal cards on /about-us
+--   home_services      the four service cards on the home page
+--   page_services      the plan cards on /services
+--   ancillary_services the branches of the diagram at the foot of /services
+--   pillars            the mission / vision / goal one-liners on the home page
+--   mvg                the mission / vision / goal cards on /about-us
 -- `icon` is a key, not markup — the page maps it to a hand-drawn SVG. See
 -- components/CardIcon.jsx for the list of available keys.
 
 create table if not exists public.content_cards (
   id          uuid primary key default gen_random_uuid(),
-  section     text not null check (section in ('home_services', 'page_services', 'support_steps', 'pillars', 'mvg')),
+  section     text not null check (section in ('home_services', 'page_services', 'ancillary_services', 'pillars', 'mvg')),
   title       text not null,
   description text not null default '',
   bullets     jsonb not null default '[]'::jsonb,
@@ -291,13 +291,11 @@ insert into public.site_sections (key, page, label, hint, eyebrow, heading, head
    $q$Don't just take our word for it - see what our partners have to say about their experience!$q$, null, 60),
 
   ('services.hero', 'Services', 'Hero', null, null,
-   $q$Simple, reliable business support.$q$, null,
+   $q$Effective, efficient, and economic business support.$q$, null,
    $q$Choose the support your business needs today, then grow into deeper compliance, accounting, and advisory care as your work expands.$q$, null, 10),
 
-  ('services.support', 'Services', 'How it works', null,
-   $q$How it feels to work with us$q$,
-   $q$One calm system for the messy business work.$q$, null,
-   $q$Impulse keeps the official, financial, and strategic work organized so you are not chasing different people for every small thing.$q$, null, 20),
+  ('services.ancillary', 'Services', 'Ancillary service diagram', null, null,
+   $q$Ancillary Service$q$, null, null, null, 20),
 
   ('about.hero', 'About', 'Hero', null, null,
    $q$About Us$q$, null,
@@ -338,10 +336,10 @@ begin
 
 if not exists (select 1 from public.content_cards where section = 'home_services') then
   insert into public.content_cards (section, title, description, icon, image_url, cta_href, sort_order) values
-    ('home_services', $q$Business Consulting$q$, $q$Clear direction aligned with long-term goals and realities.$q$, 'pulse', '/card_team.jpg', '#contact', 10),
+    ('home_services', $q$Company Compliance$q$, $q$Registration, renewals, and corporate documentation handled correctly.$q$, 'building', '/card_team.jpg', '#contact', 10),
     ('home_services', $q$Accounting & Bookkeeping$q$, $q$Minimize liabilities and maximize accuracy.$q$, 'ledger', '/heroimage.webp', '#contact', 20),
-    ('home_services', $q$Taxation$q$, $q$Prepare for the future with total confidence.$q$, 'calendar', '/card_report.jpg', '#contact', 30),
-    ('home_services', $q$VAT Filing$q$, $q$Ensuring full compliance with Nepal's regulations.$q$, 'file', '/about_office.jpg', '#contact', 40);
+    ('home_services', $q$Tax & VAT Filing$q$, $q$Returns filed on time, in line with Nepal's regulations.$q$, 'document', '/card_report.jpg', '#contact', 30),
+    ('home_services', $q$Other Services$q$, $q$Forecasts, planning, reports, and practical business direction.$q$, 'chart', '/about_office.jpg', '#contact', 40);
 end if;
 
 if not exists (select 1 from public.content_cards where section = 'page_services') then
@@ -351,22 +349,27 @@ if not exists (select 1 from public.content_cards where section = 'page_services
      $j$["Company registration","Company renewal and closure","Share transfer","Address and object changes","Trademark registration","NGO registration and renewal"]$j$::jsonb,
      'building', $q$Start compliance work$q$, '#contact', false, 10),
 
-    ('page_services', $q$Accounting & Tax$q$,
-     $q$For clean books, tax readiness, VAT filing, and financial statements your team can actually trust.$q$,
-     $j$["Tax filing","VAT filing","Financial statement preparation","Accounting and bookkeeping","Software accounting management","Intern report preparation"]$j$::jsonb,
-     'document', $q$Talk to an accountant$q$, '#contact', true, 20),
+    ('page_services', $q$Accounting & Bookkeeping$q$,
+     $q$For clean books and financial statements your team can actually trust.$q$,
+     $j$["Accounting and bookkeeping","Financial statement preparation","Software accounting management"]$j$::jsonb,
+     'ledger', $q$Talk to an accountant$q$, '#contact', true, 20),
 
-    ('page_services', $q$Finance Advisory$q$,
-     $q$For decisions that need forecasts, planning, reports, and practical business direction.$q$,
-     $j$["Project report","Forecast","Investment planning","Strategy planning","HR policy"]$j$::jsonb,
-     'chart', $q$Plan with Impulse$q$, '#contact', false, 30);
+    ('page_services', $q$Tax & VAT Filing$q$,
+     $q$For returns filed on time and in line with Nepal's regulations.$q$,
+     $j$["Tax filing","VAT filing"]$j$::jsonb,
+     'document', $q$Get filing help$q$, '#contact', false, 30),
+
+    ('page_services', $q$Other Services$q$,
+     $q$For decisions that need forecasts, planning, reports, and practical direction.$q$,
+     $j$["Project report","Forecast","Investment planning","Strategy planning","HR policy","Intern report preparation"]$j$::jsonb,
+     'chart', $q$Ask about a service$q$, '#contact', false, 40);
 end if;
 
-if not exists (select 1 from public.content_cards where section = 'support_steps') then
-  insert into public.content_cards (section, title, description, sort_order) values
-    ('support_steps', $q$We understand the situation$q$, $q$We look at your company stage, records, filings, and immediate priorities.$q$, 10),
-    ('support_steps', $q$We organize the work$q$, $q$Documents, accounts, filings, and reports are arranged in the right order.$q$, 20),
-    ('support_steps', $q$You move with clarity$q$, $q$You get completed work, clean handoff, and simple next-step guidance.$q$, 30);
+if not exists (select 1 from public.content_cards where section = 'ancillary_services') then
+  insert into public.content_cards (section, title, description, icon, image_url, sort_order) values
+    ('ancillary_services', $q$Event Management$q$, '', 'calendar', '/card_team.jpg', 10),
+    ('ancillary_services', $q$Training and Seminar$q$, '', 'flag', '/about_office.jpg', 20),
+    ('ancillary_services', $q$Research and Development$q$, '', 'trend', '/card_report.jpg', 30);
 end if;
 
 if not exists (select 1 from public.content_cards where section = 'pillars') then

@@ -1,4 +1,5 @@
 import { getSection, getCards } from '@/lib/content';
+import { cloudinaryImage } from '@/lib/cloudinary';
 import CardIcon from '@/components/CardIcon';
 
 /* Rebuilt from the database every 5 minutes, and immediately after a save in
@@ -11,16 +12,16 @@ export async function generateMetadata() {
     title: 'Services',
     description:
       hero.subheading ||
-      'Business consulting, accounting & bookkeeping, VAT filing, and taxation advisory for growing businesses in Nepal.'
+      'Company compliance, accounting & bookkeeping, tax & VAT filing, and advisory services for growing businesses in Nepal.'
   };
 }
 
 export default async function ServicesPage() {
-  const [hero, support, plans, steps] = await Promise.all([
+  const [hero, ancillary, plans, ancillaryItems] = await Promise.all([
     getSection('services.hero'),
-    getSection('services.support'),
+    getSection('services.ancillary'),
     getCards('page_services'),
-    getCards('support_steps')
+    getCards('ancillary_services')
   ]);
 
   return (
@@ -44,7 +45,6 @@ export default async function ServicesPage() {
                       <CardIcon name={plan.icon} size={17} strokeWidth={2.2} />
                     </span>
                     <h2>{plan.title}</h2>
-                    <p>{plan.description}</p>
                     <ul>
                       {plan.bullets.map((item) => <li key={item}>{item}</li>)}
                     </ul>
@@ -58,24 +58,42 @@ export default async function ServicesPage() {
           </div>
         </section>
 
-        <section className="services-page-support" aria-labelledby="services-support-heading">
-          <div className="section-container services-page-support-grid">
-            <div className="services-page-support-copy">
-              <span className="services-page-kicker"><i></i> {support.eyebrow}</span>
-              <h2 id="services-support-heading">{support.heading}</h2>
-              <p>{support.subheading}</p>
-            </div>
-            <div className="services-page-support-steps">
-              {steps.map((step, i) => (
-                <article key={step.id}>
-                  {/* Numbering is positional, so reordering the steps in the
-                      admin panel renumbers them without anyone editing text. */}
-                  <span>{String(i + 1).padStart(2, '0')}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </article>
+        {/* Drawn as a tree: the heading is the parent node and each ancillary
+            line of work branches off it. The connectors are CSS borders on the
+            branch cells, so adding or removing a card in the admin panel
+            redraws the diagram without anyone touching the markup. */}
+        <section className="services-page-ancillary" aria-labelledby="services-ancillary-heading">
+          <div className="section-container ancillary-tree">
+            <h2 className="ancillary-root" id="services-ancillary-heading">
+              {ancillary.heading}
+            </h2>
+            {ancillary.subheading && <p className="ancillary-intro">{ancillary.subheading}</p>}
+
+            <ul className="ancillary-branches">
+              {ancillaryItems.map((item) => (
+                <li className="ancillary-branch" key={item.id}>
+                  {/* The image is optional: a card with none falls back to the
+                      icon-and-title node, so the diagram never breaks while an
+                      image is still being sourced. */}
+                  <article className={`ancillary-node${item.image_url ? ' has-media' : ''}`}>
+                    {item.image_url && (
+                      <span className="ancillary-node-media">
+                        <img
+                          src={cloudinaryImage(item.image_url, { width: 520, height: 340 })}
+                          alt={item.title}
+                          width="520" height="340" decoding="async" loading="lazy"
+                        />
+                      </span>
+                    )}
+                    <span className="ancillary-node-icon" aria-hidden="true">
+                      <CardIcon name={item.icon} size={17} strokeWidth={2.2} />
+                    </span>
+                    <h3>{item.title}</h3>
+                    {item.description && <p>{item.description}</p>}
+                  </article>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
       </main>

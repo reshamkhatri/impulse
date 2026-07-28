@@ -12,7 +12,7 @@ const GROUPS = [
   {
     section: 'page_services',
     title: 'Service cards on /services',
-    blurb: 'The three plan cards, with the list of what each one covers.',
+    blurb: 'The plan cards, with the list of what each one covers. Descriptions are not shown on this page.',
     addLabel: 'Add a service',
     show: { bullets: true, icon: true, cta: true, featured: true },
     featuredLabel: 'Make this the highlighted card'
@@ -26,12 +26,13 @@ const GROUPS = [
     descriptionLabel: 'One-line description'
   },
   {
-    section: 'support_steps',
-    title: 'How it works',
-    blurb: 'The numbered steps further down /services. Numbering follows the order below.',
-    addLabel: 'Add a step',
-    show: {},
-    titleLabel: 'Step title'
+    section: 'ancillary_services',
+    title: 'Ancillary services',
+    blurb: 'The branches of the diagram at the foot of /services. The diagram redraws itself around however many you add.',
+    addLabel: 'Add an ancillary service',
+    show: { icon: true, image: true },
+    titleLabel: 'Service name',
+    descriptionLabel: 'Optional one-line description'
   }
 ];
 

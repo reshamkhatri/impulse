@@ -77,17 +77,29 @@ export default function SiteMotion() {
       /* ----------------------------------------------------------------
          2. Navbar — glass background after slight scroll, hide down / show up
          ---------------------------------------------------------------- */
+      /* Runs on every scroll frame, so it tracks the two class states itself and
+         only touches the DOM when one actually flips. Writing the same class list
+         back 60+ times a second is work the compositor doesn't need. */
+      let isScrolled = false;
+      let isHidden = false;
+
       ScrollTrigger.create({
         start: 0,
         end: 'max',
         onUpdate(self) {
           if (navLocked) return;
           const y = self.scroll();
-          header.classList.toggle('header-scrolled', y > 64);
-          if (self.direction === 1 && y > 160) {
-            header.classList.add('header-hidden');
-          } else {
-            header.classList.remove('header-hidden');
+
+          const scrolled = y > 64;
+          if (scrolled !== isScrolled) {
+            isScrolled = scrolled;
+            header.classList.toggle('header-scrolled', scrolled);
+          }
+
+          const hidden = self.direction === 1 && y > 160;
+          if (hidden !== isHidden) {
+            isHidden = hidden;
+            header.classList.toggle('header-hidden', hidden);
           }
         }
       });
@@ -140,6 +152,7 @@ export default function SiteMotion() {
         menuOpen = true;
         navLocked = true;
         header.classList.remove('header-hidden');
+        isHidden = false; // keeps the scroll handler's cached state honest
         navToggle.classList.add('is-open');
         navToggle.setAttribute('aria-expanded', 'true');
         navToggle.setAttribute('aria-label', 'Close menu');
@@ -453,40 +466,9 @@ export default function SiteMotion() {
       buildMarquee('.row-left .marquee-track', -1, 60);
       buildMarquee('.row-right .marquee-track', 1, 60);
 
-      /* Rain for the umbrella section — light streaks the umbrella "shields" the
-         service items from. Runs only while the section is on screen. */
-      const rainLayer = document.querySelector('.umbrella-rain');
-      if (rainLayer) {
-        rainLayer.innerHTML = ''; // re-entrant: never stack drops across renders
-        const dropTweens = [];
-        const dropCount = window.innerWidth < 768 ? 14 : 26;
-        for (let i = 0; i < dropCount; i++) {
-          const drop = document.createElement('span');
-          drop.className = 'rain-drop';
-          const height = gsap.utils.random(22, 44);
-          drop.style.height = height + 'px';
-          drop.style.left = gsap.utils.random(1, 99) + '%';
-          drop.style.opacity = gsap.utils.random(0.35, 0.8);
-          rainLayer.appendChild(drop);
-          dropTweens.push(gsap.fromTo(drop,
-            { y: -height },
-            {
-              y: () => rainLayer.clientHeight + height,
-              duration: gsap.utils.random(1.8, 3.2),
-              delay: gsap.utils.random(0, 3),
-              repeat: -1,
-              ease: 'none',
-              paused: true
-            }
-          ));
-        }
-        ScrollTrigger.create({
-          trigger: '.section-umbrella',
-          start: 'top bottom',
-          end: 'bottom top',
-          onToggle(self) { dropTweens.forEach((t) => (self.isActive ? t.play() : t.pause())); }
-        });
-      }
+      /* The rain layer that used to live here is gone: the sunny sky replaced it
+         and the stylesheet hides .umbrella-rain outright, so building 26 drop
+         elements and 26 infinite tweens for it was work nothing could ever see. */
 
       /* The drifting cloud bands are CSS animations, paused by default in the
          stylesheet. Run them only while their section is on screen — three

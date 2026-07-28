@@ -65,7 +65,6 @@ export default async function Home() {
             <div className="cloud-band cloud-band-mid"></div>
             <div className="cloud-band cloud-band-near"></div>
           </div>
-          <div className="umbrella-rain" aria-hidden="true"></div>
           <div className="umbrella-pin-content">
             <div className="umbrella-section-copy">
               <h2 className="umbrella-assembly-title" id="umbrella-heading">{umbrella.heading}<br /><span>{umbrella.heading_alt}</span></h2>
