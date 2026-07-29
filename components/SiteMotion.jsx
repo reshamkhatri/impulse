@@ -341,7 +341,10 @@ export default function SiteMotion() {
           .from('.blog-lead', { y: 46, opacity: 0, duration: 0.9, clearProps: 'transform' }, '-=0.45')
           .from('.blog-grid .blog-card', {
             y: 40, opacity: 0, duration: 0.8, stagger: 0.12, clearProps: 'transform'
-          }, '-=0.6');
+          }, '-=0.6')
+          /* The empty-state panel is mutually exclusive with the lead/grid, so
+             this and the two lines above never both have targets. */
+          .from('.blog-empty', { y: 34, opacity: 0, duration: 0.8, clearProps: 'transform' }, '-=0.6');
       }
 
       /* Article — the reading column lifts in, then anything below it reveals
