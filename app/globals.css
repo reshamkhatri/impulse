@@ -552,7 +552,6 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   width: max-content;
-  will-change: transform;
 }
 
 .trust-logo-item {
@@ -1094,6 +1093,17 @@ textarea:focus-visible {
 .marquee-track {
   display: flex;
   width: max-content;
+}
+
+/* will-change is scoped to the moment a track is actually drifting, the same
+   way .cloud-band does it above. These tracks are `width: max-content` holding
+   two copies of their row, so each one is a composited layer several times
+   wider than the viewport — three of them, previously promoted from first paint
+   and held for the whole visit even though SiteMotion pauses the tweens the
+   moment their row leaves the screen. SiteMotion adds .is-drifting alongside
+   that play/pause. */
+.trust-ticker-track.is-drifting,
+.marquee-track.is-drifting {
   will-change: transform;
 }
 
@@ -1825,6 +1835,18 @@ textarea:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .cloud-band { animation: none; }
+}
+
+/* Phones hold the sky still. Each band is a 540px-tall full-width composited
+   surface, and all three drift over exactly the stretch of page where the WebGL
+   canopy is also drawing — three layers the compositor has to keep promoted and
+   repaint while it is trying to carry a scroll. At phone size the drift is
+   barely legible anyway; the clouds still read as clouds standing still. */
+@media (max-width: 767px) {
+  .section-umbrella.sky-active .cloud-band {
+    animation-play-state: paused;
+    will-change: auto;
+  }
 }
 
 .umbrella-pin-content {

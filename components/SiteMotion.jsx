@@ -60,10 +60,17 @@ export default function SiteMotion() {
          1. Smooth scrolling (desktop pointers only)
          ---------------------------------------------------------------- */
       if (!prefersReduced && !isTouch) {
+        /* `smooth` is how long the content takes to catch up to where the real
+           scroll position already is. At 1.35 the page trailed a wheel flick by
+           well over a second, which does not read as smoothness — it reads as
+           the page being slow to respond, and it is the one scroll behaviour
+           that exists on pointer devices and nowhere else. 0.9 keeps the glide
+           but puts the content back under the visitor's hand. Raise it toward
+           1.2 for a floatier feel, drop toward 0.6 for near-native. */
         smoother = ScrollSmoother.create({
           wrapper: '#smooth-wrapper',
           content: '#smooth-content',
-          smooth: 1.35,
+          smooth: 0.9,
           effects: true,
           smoothTouch: 0
         });
@@ -455,7 +462,14 @@ export default function SiteMotion() {
           trigger: row,
           start: 'top bottom',
           end: 'bottom top',
-          onToggle(self) { self.isActive ? tween.play() : tween.pause(); }
+          /* .is-drifting carries the will-change (see globals.css). Promoting
+             the layer here rather than in the base rule means these very wide
+             tracks only occupy GPU memory while they are on screen and moving,
+             instead of from first paint until the visitor leaves. */
+          onToggle(self) {
+            self.isActive ? tween.play() : tween.pause();
+            track.classList.toggle('is-drifting', self.isActive);
+          }
         });
 
         // Ease the row to a stop on hover instead of freezing abruptly.
