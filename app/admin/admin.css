@@ -323,6 +323,162 @@
 }
 .adm-code--block { display: block; padding: .85rem 1rem; white-space: pre-wrap; margin-top: .6rem; line-height: 1.6; }
 
+/* -------------------------------------------------------- popup manager --- */
+
+.adm-popup-mgr {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+.adm-toggle-row {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.35rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.96rem;
+}
+
+.adm-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.adm-preview-box {
+  background: #f1f5f9;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.adm-preview-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.adm-preview-stage {
+  padding: 1.5rem 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.adm-preview-stage .popup-card {
+  width: 100%;
+  max-width: 26rem;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 14px 36px rgba(10, 22, 40, 0.12), 0 0 0 1px rgba(226, 237, 248, 0.8);
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+}
+
+.adm-preview-stage .popup-card.is-preview-disabled {
+  opacity: 0.5;
+}
+
+.adm-preview-stage .popup-media {
+  width: 100%;
+  height: 10rem;
+  overflow: hidden;
+  background: #f0f4f9;
+}
+
+.adm-preview-stage .popup-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adm-preview-stage .popup-content {
+  padding: 1.5rem 1.6rem 1.65rem;
+}
+
+.adm-preview-stage .popup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.65rem;
+  background: #e1f0fa;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.adm-preview-stage .popup-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.adm-preview-stage .popup-title {
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #0a1628;
+  line-height: 1.25;
+  margin: 0 0 0.65rem;
+}
+
+.adm-preview-stage .popup-desc {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #5a6a7e;
+  margin: 0 0 1.25rem;
+}
+
+.adm-preview-stage .popup-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.adm-preview-stage .popup-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 2rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.adm-preview-stage .popup-dismiss-btn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8c9ba5;
+  padding: 0.4rem 0.6rem;
+}
+
+@media (max-width: 1080px) {
+  .adm-popup-mgr {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-preview-box {
+    position: static;
+  }
+}
+
 /* ---------------------------------------------------------- responsive --- */
 
 @media (max-width: 900px) {
@@ -339,3 +495,4 @@
   .adm-who { display: none; }
   .adm-main { padding: 1.5rem 1rem 3rem; }
 }
+

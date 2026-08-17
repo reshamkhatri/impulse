@@ -3,6 +3,7 @@ import MissionBand from '@/components/MissionBand';
 import CardIcon from '@/components/CardIcon';
 import { getSection, getCards } from '@/lib/content';
 import { cloudinaryImage } from '@/lib/cloudinary';
+import FaqAccordion from '@/components/site/FaqAccordion';
 
 export const revalidate = 300;
 
@@ -561,6 +562,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* FAQ Accordion */}
+        <FaqAccordion />
 
       </main>
   );

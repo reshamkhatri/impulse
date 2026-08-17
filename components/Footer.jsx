@@ -48,7 +48,7 @@ export default function Footer() {
           {/* Col 1: Branding */}
           <div className="footer-col brand-col">
             <img src="/logo.webp" alt="Impulse Logo" className="footer-logo" width="430" height="85" decoding="async" loading="lazy" />
-            <p className="footer-brand-text">Nepali corporate consulting, accounting, audits, and VAT filings tailored for strategic growth.</p>
+            <p className="footer-brand-text">Nepali corporate consulting, accounting, and VAT filings tailored for strategic growth.</p>
             <div className="footer-social-row">
               {/* Inline SVG social icons representing the mockup style (f, in, ig, tg) */}
               <a href="#" aria-label="Facebook">

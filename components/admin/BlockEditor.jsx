@@ -19,6 +19,8 @@ import { useState } from 'react';
 const TYPES = [
   { value: 'p', label: 'Paragraph' },
   { value: 'h2', label: 'Heading' },
+  { value: 'image', label: 'In-Article Photo' },
+  { value: 'callout', label: 'Key Takeaway Box' },
   { value: 'ul', label: 'Bullet list' },
   { value: 'quote', label: 'Pull quote' }
 ];
@@ -26,18 +28,42 @@ const TYPES = [
 const PLACEHOLDERS = {
   p: 'Write the paragraph…',
   h2: 'Section heading',
+  image: 'Image URL or path (e.g. /blog/training.jpg)\nCaption (optional on second line)',
+  callout: 'Callout Title (line 1)\nKey insight or explanation (subsequent lines)',
   ul: 'One bullet per line',
   quote: 'A sentence worth pulling out'
 };
 
-const blank = (type) => (type === 'ul' ? { type, items: [] } : { type, text: '' });
+const blank = (type) => {
+  if (type === 'ul') return { type, items: [] };
+  if (type === 'image') return { type, url: '', caption: '' };
+  if (type === 'callout') return { type, title: '', text: '' };
+  return { type, text: '' };
+};
 
-/** A block's editable text: list items collapse to one line each. */
-const toText = (block) => (block.type === 'ul' ? (block.items ?? []).join('\n') : block.text ?? '');
+/** A block's editable text */
+const toText = (block) => {
+  if (block.type === 'ul') return (block.items ?? []).join('\n');
+  if (block.type === 'image') return [block.url ?? '', block.caption ?? ''].filter(Boolean).join('\n');
+  if (block.type === 'callout') return [block.title ?? '', block.text ?? ''].filter(Boolean).join('\n');
+  return block.text ?? '';
+};
 
 function fromText(type, text) {
   if (type === 'ul') {
     return { type, items: text.split('\n').map((line) => line.trim()).filter(Boolean) };
+  }
+  if (type === 'image') {
+    const lines = text.split('\n');
+    const url = lines[0]?.trim() ?? '';
+    const caption = lines.slice(1).join('\n').trim();
+    return { type, url, caption };
+  }
+  if (type === 'callout') {
+    const lines = text.split('\n');
+    const title = lines[0]?.trim() ?? '';
+    const bodyText = lines.slice(1).join('\n').trim();
+    return { type, title, text: bodyText || title };
   }
   return { type, text };
 }

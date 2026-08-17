@@ -16,10 +16,15 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollSmoother } from 'gsap/ScrollSmoother';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother, ScrollToPlugin);
+/* ScrollSmoother is NOT imported here. It only ever runs on pointer devices
+   (see the isTouch branch below), so a static import meant every phone paid to
+   download and parse a plugin it would never instantiate. It now arrives via a
+   dynamic import inside the desktop branch, which Next splits into its own
+   chunk. ScrollToPlugin is gone entirely — the one place that needed it was the
+   no-smoother anchor path, which now uses native smooth scrolling instead
+   (compositor-driven, so it's also smoother on phones than a JS tween). */
+gsap.registerPlugin(ScrollTrigger);
 
 /* Layout effect so the "from" states are set before the browser paints —
    with a plain useEffect the page paints fully visible for one frame and then
@@ -54,31 +59,52 @@ export default function SiteMotion() {
     let menuOpen = false;
     let smoother = null;
     let closeMobileMenu = () => {};
+    /* Guards the async ScrollSmoother import below: a route change can land
+       while its chunk is still in flight, and creating a smoother against a DOM
+       that React has already swapped out leaves a stuck scroll position. */
+    let cancelled = false;
 
     const ctx = gsap.context(() => {
       /* ----------------------------------------------------------------
          1. Smooth scrolling (desktop pointers only)
          ---------------------------------------------------------------- */
       if (!prefersReduced && !isTouch) {
-        /* `smooth` is how long the content takes to catch up to where the real
-           scroll position already is. At 1.35 the page trailed a wheel flick by
-           well over a second, which does not read as smoothness — it reads as
-           the page being slow to respond, and it is the one scroll behaviour
-           that exists on pointer devices and nowhere else. 0.9 keeps the glide
-           but puts the content back under the visitor's hand. Raise it toward
-           1.2 for a floatier feel, drop toward 0.6 for near-native. */
-        smoother = ScrollSmoother.create({
-          wrapper: '#smooth-wrapper',
-          content: '#smooth-content',
-          smooth: 0.9,
-          effects: true,
-          smoothTouch: 0
-        });
+        /* Fetched rather than bundled — see the note by the imports. The page is
+           still at scroll 0 while the intro plays, and a smoother that takes
+           over a page at scroll 0 does so seamlessly, so landing a beat late
+           costs nothing visible. Everything below this block is built
+           synchronously either way, so no reveal waits on the network. */
+        import('gsap/ScrollSmoother').then(({ ScrollSmoother }) => {
+          if (cancelled) return;
+          gsap.registerPlugin(ScrollSmoother);
 
-        // Subtle hero background parallax
-        if (document.querySelector('.hero-bg')) {
-          smoother.effects('.hero-bg', { speed: 0.85 });
-        }
+          /* ctx.add() rather than a bare create(): gsap.context() only collects
+             what the synchronous callback creates, so a smoother built inside
+             this promise would escape ctx.revert() and survive the route change
+             that was supposed to kill it. */
+          ctx.add(() => {
+            /* `smooth` is how long the content takes to catch up to where the
+               real scroll position already is. At 1.35 the page trailed a wheel
+               flick by well over a second, which does not read as smoothness —
+               it reads as the page being slow to respond, and it is the one
+               scroll behaviour that exists on pointer devices and nowhere else.
+               0.9 keeps the glide but puts the content back under the visitor's
+               hand. Raise it toward 1.2 for a floatier feel, drop toward 0.6
+               for near-native. */
+            smoother = ScrollSmoother.create({
+              wrapper: '#smooth-wrapper',
+              content: '#smooth-content',
+              smooth: 0.9,
+              effects: true,
+              smoothTouch: 0
+            });
+
+            // Subtle hero background parallax
+            if (document.querySelector('.hero-bg')) {
+              smoother.effects('.hero-bg', { speed: 0.85 });
+            }
+          });
+        });
       }
 
       /* ----------------------------------------------------------------
@@ -208,12 +234,13 @@ export default function SiteMotion() {
             const y = Math.max(0, smoother.offset(target, `top ${HEADER_OFFSET}px`));
             gsap.to(smoother, { scrollTop: y, duration: 1.05, ease: 'power3.inOut', overwrite: 'auto' });
           } else {
-            gsap.to(window, {
-              scrollTo: { y: target, offsetY: HEADER_OFFSET, autoKill: true },
-              duration: 1.05,
-              ease: 'power3.inOut',
-              overwrite: 'auto'
-            });
+            /* Native rather than a ScrollToPlugin tween. The browser runs this
+               on the compositor, so it keeps gliding while the main thread is
+               busy — exactly the condition (hydration, image decode, the
+               umbrella build) under which a JS-driven scroll stutters on a
+               phone. It also drops the plugin from the bundle entirely. */
+            const y = target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+            window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
           }
         };
         anchor.addEventListener('click', handler);
@@ -341,39 +368,58 @@ export default function SiteMotion() {
 
       /* Blog index — heading, then the lead post, then the grid cascades in.
          Built as one timeline so the whole page settles as a single move. */
+      /* Blog index — headline, toolbar, featured hero, and cascading cards */
       if (document.querySelector('.blog-index')) {
-        gsap.timeline({ defaults: { ease: 'power3.out' } })
-          .from('.blog-headline', { y: 30, opacity: 0, duration: 0.8 })
-          .from('.blog-sub', { y: 22, opacity: 0, duration: 0.7 }, '-=0.55')
-          .from('.blog-lead', { y: 46, opacity: 0, duration: 0.9, clearProps: 'transform' }, '-=0.45')
-          .from('.blog-grid .blog-card', {
-            y: 40, opacity: 0, duration: 0.8, stagger: 0.12, clearProps: 'transform'
-          }, '-=0.6')
-          /* The empty-state panel is mutually exclusive with the lead/grid, so
-             this and the two lines above never both have targets. */
-          .from('.blog-empty', { y: 34, opacity: 0, duration: 0.8, clearProps: 'transform' }, '-=0.6');
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        if (document.querySelector('.blog-headline')) {
+          tl.from('.blog-headline', { y: 28, opacity: 0, duration: 0.75 });
+        }
+        if (document.querySelector('.blog-sub')) {
+          tl.from('.blog-sub', { y: 20, opacity: 0, duration: 0.65 }, '-=0.5');
+        }
+        if (document.querySelector('.blog-toolbar')) {
+          tl.from('.blog-toolbar', { y: 16, opacity: 0, duration: 0.6 }, '-=0.45');
+        }
+        if (document.querySelector('.blog-hero-card')) {
+          tl.from('.blog-hero-card', { y: 36, opacity: 0, duration: 0.85, clearProps: 'transform' }, '-=0.4');
+        }
+        if (document.querySelectorAll('.blog-grid .blog-card').length) {
+          tl.from('.blog-grid .blog-card', {
+            y: 32, opacity: 0, duration: 0.75, stagger: 0.1, clearProps: 'transform'
+          }, '-=0.5');
+        }
+        if (document.querySelector('.blog-promo-card')) {
+          tl.from('.blog-promo-card', { y: 28, opacity: 0, duration: 0.75, clearProps: 'transform' }, '-=0.4');
+        }
       }
 
-      /* Article — the reading column lifts in, then anything below it reveals
-         on scroll like the rest of the site. */
+      /* Article — back button, meta, title, standfirst, hero cover, and body */
       if (document.querySelector('.article')) {
-        gsap.timeline({ defaults: { ease: 'power3.out' } })
-          .from('.article-back', { x: -14, opacity: 0, duration: 0.55 })
-          .from('.article-meta', { y: 16, opacity: 0, duration: 0.55 }, '-=0.35')
-          .from('.article-title', { y: 30, opacity: 0, duration: 0.85 }, '-=0.4')
-          .from('.article-standfirst', { y: 22, opacity: 0, duration: 0.7 }, '-=0.6')
-          .from('.article-author', { y: 16, opacity: 0, duration: 0.6 }, '-=0.5')
-          .from('.article-body', { y: 40, opacity: 0, duration: 0.9, clearProps: 'transform' }, '-=0.55');
-
-        reveal('.article-cta', '.article-cta', { y: 34 });
-        reveal('.article-more-heading', '.article-more', { y: 24 });
-        if (document.querySelector('.article-more-grid')) {
-          gsap.from('.article-more-grid .blog-card', {
-            scrollTrigger: { trigger: '.article-more-grid', start: 'top 88%', once: true },
-            y: 36, opacity: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out',
-            clearProps: 'transform'
-          });
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        if (document.querySelector('.article-back')) {
+          tl.from('.article-back', { x: -14, opacity: 0, duration: 0.55 });
         }
+        if (document.querySelector('.article-meta-top')) {
+          tl.from('.article-meta-top', { y: 16, opacity: 0, duration: 0.55 }, '-=0.35');
+        }
+        if (document.querySelector('.article-title')) {
+          tl.from('.article-title', { y: 28, opacity: 0, duration: 0.8 }, '-=0.4');
+        }
+        if (document.querySelector('.article-standfirst')) {
+          tl.from('.article-standfirst', { y: 20, opacity: 0, duration: 0.65 }, '-=0.55');
+        }
+        if (document.querySelector('.article-author-row')) {
+          tl.from('.article-author-row', { y: 16, opacity: 0, duration: 0.55 }, '-=0.45');
+        }
+        if (document.querySelector('.article-cover')) {
+          tl.from('.article-cover', { y: 32, opacity: 0, duration: 0.8, clearProps: 'transform' }, '-=0.45');
+        }
+        if (document.querySelector('.article-body')) {
+          tl.from('.article-body', { y: 36, opacity: 0, duration: 0.85, clearProps: 'transform' }, '-=0.5');
+        }
+
+        reveal('.article-cta', '.article-cta', { y: 30 });
+        reveal('.article-more', '.article-more', { y: 30 });
       }
 
       reveal('.team-header', '.section-team', { y: 30 });
@@ -419,24 +465,43 @@ export default function SiteMotion() {
         });
       });
 
-      scrollMotion.add('(max-width: 768px)', () => {
-        if (!document.querySelector('.hero')) return;
-        gsap.to('.hero-bg', {
-          yPercent: 7, ease: 'none',
-          scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.8 }
-        });
-      });
+      /* No mobile hero parallax. It was the only scroll-linked transform still
+         running while a phone scrolls the very first screen — the moment the
+         main thread is already busiest with hydration and image decode — and it
+         bought 7% of drift on an image that is mostly off-screen by then. The
+         hero keeps its scale-settle entrance (heroTl above), which plays on its
+         own clock and stops. Desktop parallax is untouched. */
 
-      /* The redesigned CTA opens in layered phases as it enters the viewport. */
+      /* The redesigned CTA opens in layered phases as it enters the viewport.
+
+         Desktop scrubs it to the scroll position. Phones play it once on entry
+         instead: a scrubbed timeline recomputes and writes five elements' worth
+         of transforms on every scroll frame, and it does that inside the same
+         frame the phone is trying to carry a fling. Played once, the identical
+         choreography runs on its own clock and then stops touching the DOM
+         forever, which is the single biggest source of scroll jank removed. */
       if (document.querySelector('.footer-cta-card')) {
-        gsap.timeline({
-          scrollTrigger: { trigger: '.footer-cta-card', start: 'top 94%', end: 'top 48%', scrub: 0.9 }
-        })
-          .from('.footer-cta-card', { y: 65, scale: 0.965, opacity: 0, ease: 'none' }, 0)
-          .from('.footer-cta-copy', { x: -55, opacity: 0, ease: 'none' }, 0.08)
-          .from('.footer-cta-services span', { y: 18, opacity: 0, stagger: 0.12, ease: 'none' }, 0.2)
-          .from('.footer-cta-action', { x: 75, opacity: 0, ease: 'none' }, 0.14)
-          .from('.footer-cta-action > *', { y: 20, opacity: 0, stagger: 0.1, ease: 'none' }, 0.35);
+        scrollMotion.add('(min-width: 769px)', () => {
+          gsap.timeline({
+            scrollTrigger: { trigger: '.footer-cta-card', start: 'top 94%', end: 'top 48%', scrub: 0.9 }
+          })
+            .from('.footer-cta-card', { y: 65, scale: 0.965, opacity: 0, ease: 'none' }, 0)
+            .from('.footer-cta-copy', { x: -55, opacity: 0, ease: 'none' }, 0.08)
+            .from('.footer-cta-services span', { y: 18, opacity: 0, stagger: 0.12, ease: 'none' }, 0.2)
+            .from('.footer-cta-action', { x: 75, opacity: 0, ease: 'none' }, 0.14)
+            .from('.footer-cta-action > *', { y: 20, opacity: 0, stagger: 0.1, ease: 'none' }, 0.35);
+        });
+
+        scrollMotion.add('(max-width: 768px)', () => {
+          gsap.timeline({
+            scrollTrigger: { trigger: '.footer-cta-card', start: 'top 88%', once: true },
+            defaults: { ease: 'power3.out' }
+          })
+            .from('.footer-cta-card', { y: 42, opacity: 0, duration: 0.7, clearProps: 'transform' })
+            .from('.footer-cta-copy', { y: 24, opacity: 0, duration: 0.6 }, '-=0.45')
+            .from('.footer-cta-services span', { y: 14, opacity: 0, duration: 0.5, stagger: 0.07 }, '-=0.4')
+            .from('.footer-cta-action > *', { y: 16, opacity: 0, duration: 0.5, stagger: 0.08 }, '-=0.35');
+        });
       }
 
       reveal('.footer-columns-grid > .footer-col', '.footer-columns-grid', { y: 34, stagger: 0.12 });
@@ -538,6 +603,7 @@ export default function SiteMotion() {
     firstLoad.current = false;
 
     return () => {
+      cancelled = true; // an in-flight ScrollSmoother chunk must not build now
       ctxCleanup.current?.();
       ctxCleanup.current = null;
       ctx.revert(); // kills every tween, ScrollTrigger and the smoother itself

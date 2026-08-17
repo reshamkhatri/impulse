@@ -324,7 +324,12 @@ We believe good numbers lead to good decisions. Our focus is simple — deliver 
 
   ('blog.cta', 'Blog', 'Article call to action', 'Shown at the foot of every article.', null,
    $q$Need help with this?$q$, null,
-   $q$Talk to the team that handles compliance, accounting, and tax for 50+ businesses across Nepal.$q$, null, 20)
+   $q$Talk to the team that handles compliance, accounting, and tax for 50+ businesses across Nepal.$q$, null, 20),
+
+  ('site.popup', 'Popup', 'Welcome announcement popup', 'Shown to first-time visitors.', $q$Announcement$q$,
+    $q$Welcome to Impulse Investment & Management$q$, $q$Explore Services|/#contact|/blog/bootcamp.webp$q$,
+    $q$enabled$q$,
+    $q$We empower businesses across Nepal with company registration, compliance, accurate accounting, and strategic consulting. Schedule your initial advisory session today.$q$, 10)
 on conflict (key) do nothing;
 
 -- Cards. These tables have no natural unique key — a board can legitimately
@@ -409,9 +414,9 @@ end if;
 
 if not exists (select 1 from public.team_members where kind = 'board') then
   insert into public.team_members (kind, name, role, bio, photo_url, linkedin_url, sort_order) values
-    ('board', $q$Board Member One$q$,   $q$Director$q$, $q$Add this director's biography from the admin panel — a short paragraph on their background and what they bring to the board.$q$, 'https://i.pravatar.cc/500?img=33', '#', 10),
-    ('board', $q$Board Member Two$q$,   $q$Director$q$, $q$Add this director's biography from the admin panel — a short paragraph on their background and what they bring to the board.$q$, 'https://i.pravatar.cc/500?img=45', '#', 20),
-    ('board', $q$Board Member Three$q$, $q$Director$q$, $q$Add this director's biography from the admin panel — a short paragraph on their background and what they bring to the board.$q$, 'https://i.pravatar.cc/500?img=15', '#', 30);
+    ('board', $q$Utsav Dhakal$q$,   $q$Director$q$, $q$Director at Impulse Investment and Management Pvt. Ltd.$q$, 'https://i.pravatar.cc/500?img=33', '#', 10),
+    ('board', $q$Sanju Regmi$q$,   $q$Director$q$, $q$Director at Impulse Investment and Management Pvt. Ltd.$q$, 'https://i.pravatar.cc/500?img=45', '#', 20),
+    ('board', $q$Bina Gadtaula$q$, $q$Director$q$, $q$Director at Impulse Investment and Management Pvt. Ltd.$q$, 'https://i.pravatar.cc/500?img=15', '#', 30);
 end if;
 
 end
